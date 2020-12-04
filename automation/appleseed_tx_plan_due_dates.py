@@ -2,11 +2,13 @@ import os
 import pandas as pd
 import shutil
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 
+from infrastructure.drive_upload import upload_file
+from infrastructure.email import send_gmail
 from infrastructure.last_day_of_month import last_day_of_month
 
 
@@ -35,7 +37,7 @@ def join_datatables():
                str((date.today().replace(day=1) + timedelta(days=62)).month) + '-' + \
                str((date.today().replace(day=1) + timedelta(days=62)).year) + '_treatment_plan_due_dates.csv'
     merged.to_csv(filename, index=False)
-    return filename
+    return filename.split('/')[-1]
 
 
 def browser():
@@ -121,7 +123,7 @@ def browser():
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/ul/li[17]/a').click()
 
     # rename the downloaded file
-    sleep(2)
+    sleep(5)
     filename = max([path + '\\' + f for f in os.listdir(path)], key=os.path.getctime)
     shutil.move(filename, os.path.join(path, r'primary_workers.csv'))
 
@@ -167,7 +169,7 @@ def browser():
         '/html/body/form/span[2]/span[2]/span[1]/rdcondelement10/span/rdcondelement9/span/a/img').click()
 
     # rename the downloaded file
-    sleep(2)  # wait for download
+    sleep(5)  # wait for download
     filename = max([path + '\\' + f for f in os.listdir(path)], key=os.path.getctime)
     shutil.move(filename, os.path.join(path, r'treatment_due_dates.csv'))
 
@@ -177,12 +179,15 @@ def browser():
 def main():
     browser()
     merged_filename = join_datatables()
+    email_body = "Your monthly ISP due dates report (%s) is ready and available on the Appleseed RPA " \
+                 "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
+                 % merged_filename
+    upload_file('C:\\Users\\mingus\\Documents\\' + merged_filename, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
+    send_gmail('dispentia@gmail.com', 'KHIT Report Notification', email_body)
 
-    # TODO -- send emails via gsuite service account
-
-    # os.remove('C:/Users/mingus/Downloads/treatment_due_dates.csv')
-    # os.remove('C:/Users/mingus/Downloads/primary_workers.csv')
-    # os.remove(merged_filename)
+    os.remove('C:/Users/mingus/Downloads/treatment_due_dates.csv')
+    os.remove('C:/Users/mingus/Downloads/primary_workers.csv')
+    os.remove(merged_filename)
 
 
 main()
