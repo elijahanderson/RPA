@@ -24,6 +24,6 @@ def upload_file(filename, folder_id):
         'parents': [folder_id]
     }
     media = MediaFileUpload(filename, resumable=True)
-    file = service.files().create(body=file_metadata,
-                                  media_body=media,
-                                  fields='id').execute()
+    service.files().create(body=file_metadata,
+                           media_body=media,
+                           fields='id').execute()
