@@ -1,6 +1,6 @@
 .idea/
 __pycache__/
-csv/
+src/csv/
 venv/
-automation/debug.log
-data/service_key.json
+src/automation/debug.log
+src/data/service_key.json
