@@ -13,8 +13,8 @@ from infrastructure.last_day_of_month import last_day_of_month
 
 
 def join_datatables():
-    tp_csv = pd.read_csv('C:/Users/mingus/Downloads/treatment_due_dates.csv')
-    pw_csv = pd.read_csv('C:/Users/mingus/Downloads/primary_workers.csv')
+    tp_csv = pd.read_csv('csv/treatment_due_dates.csv')
+    pw_csv = pd.read_csv('csv/primary_workers.csv')
 
     tp_csv['name'] = tp_csv['name'].str.strip()
     pw_csv['name'] = pw_csv['name'].str.strip()
@@ -33,18 +33,17 @@ def join_datatables():
     merged['expiration_date'] = pd.to_datetime(merged.expiration_date)
     merged.sort_values(by=['primary_worker', 'expiration_date'], inplace=True, ascending=[True, True])
 
-    filename = 'C:/Users/mingus/Documents/' + str((date.today().replace(day=1) + timedelta(days=31)).month) + '-' + \
+    filename = 'csv/' + str((date.today().replace(day=1) + timedelta(days=31)).month) + '-' + \
                str((date.today().replace(day=1) + timedelta(days=62)).month) + '-' + \
                str((date.today().replace(day=1) + timedelta(days=62)).year) + '_treatment_plan_due_dates.csv'
     merged.to_csv(filename, index=False)
-    return filename.split('/')[-1]
+    return filename
 
 
 def browser():
     from_date = date.today().replace(day=28) + timedelta(days=4)
     to_date = from_date.replace(day=28) + timedelta(days=4)
     to_date = last_day_of_month(to_date)
-    path = 'C:\\Users\\mingus\\Downloads'
 
     # run in headless mode, enable downloads
     options = webdriver.ChromeOptions()
@@ -69,7 +68,6 @@ def browser():
     driver.execute('send_command', params)
 
     driver.get('https://myevolvacmhcxb.netsmartcloud.com/')
-    # driver.maximize_window()
 
     # login
     driver.find_element_by_id('MainContent_MainContent_userName').send_keys('khit')
@@ -124,8 +122,8 @@ def browser():
 
     # rename the downloaded file
     sleep(5)
-    filename = max([path + '\\' + f for f in os.listdir(path)], key=os.path.getctime)
-    shutil.move(filename, os.path.join(path, r'primary_workers.csv'))
+    filename = max(['csv' + '/' + f for f in os.listdir('csv')], key=os.path.getctime)
+    shutil.move(filename, 'csv/primary_workers.csv')
 
     # switch to default content to download the treatment plan custom report
     driver.switch_to.default_content()
@@ -170,8 +168,8 @@ def browser():
 
     # rename the downloaded file
     sleep(5)  # wait for download
-    filename = max([path + '\\' + f for f in os.listdir(path)], key=os.path.getctime)
-    shutil.move(filename, os.path.join(path, r'treatment_due_dates.csv'))
+    filename = max(['csv' + '/' + f for f in os.listdir('csv')], key=os.path.getctime)
+    shutil.move(filename, 'csv/treatment_due_dates.csv')
 
     driver.close()
 
@@ -182,11 +180,11 @@ def main():
     email_body = "Your monthly ISP due dates report (%s) is ready and available on the Appleseed RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
                  % merged_filename
-    upload_file('C:\\Users\\mingus\\Documents\\' + merged_filename, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
+    upload_file(merged_filename, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
     send_gmail('dispentia@gmail.com', 'KHIT Report Notification', email_body)
 
-    os.remove('C:/Users/mingus/Downloads/treatment_due_dates.csv')
-    os.remove('C:/Users/mingus/Downloads/primary_workers.csv')
+    os.remove('csv/treatment_due_dates.csv')
+    os.remove('csv/primary_workers.csv')
     os.remove(merged_filename)
 
 
