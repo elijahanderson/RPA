@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import shutil
+import sys
+sys.path[0] = '/home/eanderson/RPA/src'
 
 from datetime import date, timedelta
 from selenium import webdriver
@@ -41,18 +43,20 @@ def join_datatables():
 
 
 def browser():
+    print('begin')
     from_date = date.today().replace(day=28) + timedelta(days=4)
     to_date = from_date.replace(day=28) + timedelta(days=4)
     to_date = last_day_of_month(to_date)
-
+    print('setting up driver')
     # run in headless mode, enable downloads
     options = webdriver.ChromeOptions()
     options.add_argument('--window-size=1920x1080')
     options.add_argument('--disable-notifications')
     options.add_argument('--no-sandbox')
+    options.add_argument('--disable-setuid-sandbox')
     options.add_argument('--verbose')
     options.add_experimental_option('prefs', {
-        'download.default_directory': path,
+        'download.default_directory': 'csv',
         'download.prompt_for_download': False,
         'download.directory_upgrade': True,
         'safebrowsing_for_trusted_sources_enabled': False,
@@ -61,20 +65,24 @@ def browser():
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
     options.add_argument('--headless')
-    driver = webdriver.Chrome(executable_path='C:\\Users\\mingus\\AppData\\Local\\chromedriver.exe',
+    print('options configured')
+    driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver',
                               chrome_options=options)
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
-    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': path}}
+    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'csv'}}
     driver.execute('send_command', params)
-
+    print(1)
     driver.get('https://myevolvacmhcxb.netsmartcloud.com/')
+    
 
     # login
+    print(2)
     driver.find_element_by_id('MainContent_MainContent_userName').send_keys('khit')
     driver.find_element_by_id('MainContent_MainContent_password').send_keys('Ton8dot4$$')
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
 
     # navigate to worker case loads (for clients' primary workers)
+    print(3)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[18]/span').click()
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[1]/ul/li[3]').click()
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[2]/ul[2]/li[25]').click()
@@ -82,6 +90,7 @@ def browser():
     # navigate into the iframes and fill out the form
     iframe1 = driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[2]/div/div[16]/div/div/div/div/iframe')
     driver.switch_to.frame(iframe1)
+    driver.implicitly_wait(5)
     iframe2 = driver.find_element_by_xpath('/html/body/form/div[3]/div/div[2]/iframe[24]')
     driver.switch_to.frame(iframe2)
     driver.implicitly_wait(15)
@@ -92,22 +101,28 @@ def browser():
     # switch back to default content for report selection
     sleep(3)  # TODO -- implicit wait sometimes causes ElementNotInteractable exception, fix later
     driver.switch_to.default_content()
+    driver.implicitly_wait(5)
     driver.switch_to.default_content()
     driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]/td[1]') \
         .click()
 
     # go back into iframe2 for checkbox
+    print('checkbox')
+    driver.implicitly_wait(5)
     driver.switch_to.frame(iframe1)
+    driver.implicitly_wait(5)
     driver.switch_to.frame(iframe2)
+    driver.implicitly_wait(5)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[4]/div[2]/span/input').click()
 
     # switch to parameters iframe
     iframe_params = driver \
         .find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[4]/div[4]/div/div/iframe')
     driver.switch_to.frame(iframe_params)
+    driver.implicitly_wait(5)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/table/tbody/tr/td[2]/div/input') \
         .send_keys('Program' + Keys.TAB)
-    sleep(2)
+    sleep(4)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/table/tbody/tr[1]/td[4]/div/input') \
         .send_keys('Outpatient Mental Health' + Keys.TAB)
     sleep(2)
@@ -124,9 +139,11 @@ def browser():
     sleep(5)
     filename = max(['csv' + '/' + f for f in os.listdir('csv')], key=os.path.getctime)
     shutil.move(filename, 'csv/primary_workers.csv')
+    print('first csv downloaded')
 
     # switch to default content to download the treatment plan custom report
     driver.switch_to.default_content()
+    driver.implicitly_wait(5)
     driver.switch_to.default_content()
 
     # navigate to custom reports
@@ -138,9 +155,9 @@ def browser():
     driver.implicitly_wait(15)
     cr_iframe1 = driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[2]/div/div[16]/div/div/div/div/iframe')
     driver.switch_to.frame(cr_iframe1)
+    driver.implicitly_wait(5)
     cr_iframe2 = driver.find_element_by_xpath('/html/body/form/div[3]/div/div[2]/iframe')
     driver.switch_to.frame(cr_iframe2)
-    sleep(1)
     driver.find_element_by_xpath(
         '/html/body/form/table/tbody/tr/td/table/tbody/tr/td/div[1]/div[1]/div[2]/table/tbody/tr[2]/td[2]/a').click()
     sleep(1)
@@ -170,6 +187,7 @@ def browser():
     sleep(5)  # wait for download
     filename = max(['csv' + '/' + f for f in os.listdir('csv')], key=os.path.getctime)
     shutil.move(filename, 'csv/treatment_due_dates.csv')
+    print('second csv downloaded')
 
     driver.close()
 
