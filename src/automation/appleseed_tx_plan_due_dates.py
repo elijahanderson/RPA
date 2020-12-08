@@ -78,7 +78,7 @@ def browser():
     with open('src/config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
         usr = login['appleseed']
-        pwd = login['pass']
+        pwd = login['pwd']
     driver.find_element_by_id('MainContent_MainContent_userName').send_keys(usr)
     driver.find_element_by_id('MainContent_MainContent_password').send_keys(pwd)
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
@@ -203,7 +203,7 @@ def main():
                  "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
                  % merged_filename.split('/')[-1]
     send_gmail('alester@appleseedcmhc.org', 'KHIT Report Notification', email_body)
-
+    
     os.remove('src/csv/treatment_due_dates.csv')
     os.remove('src/csv/primary_workers.csv')
     os.remove(merged_filename)
