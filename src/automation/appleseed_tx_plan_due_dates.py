@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import shutil
 import sys
+
+import yaml
+
 sys.path[0] = '/home/eanderson/RPA/src'
 
 from datetime import date, timedelta
@@ -70,11 +73,14 @@ def browser():
     params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'src/csv'}}
     driver.execute('send_command', params)
     driver.get('https://myevolvacmhcxb.netsmartcloud.com/')
-    
 
     # login
-    driver.find_element_by_id('MainContent_MainContent_userName').send_keys('khit')
-    driver.find_element_by_id('MainContent_MainContent_password').send_keys('Ton8dot4$$')
+    with open('src/config/login.yml', 'r') as yml:
+        login = yaml.safe_load(yml)
+        usr = login['appleseed']
+        pwd = login['pass']
+    driver.find_element_by_id('MainContent_MainContent_userName').send_keys(usr)
+    driver.find_element_by_id('MainContent_MainContent_password').send_keys(pwd)
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
 
 
@@ -196,7 +202,7 @@ def main():
     email_body = "Your monthly ISP due dates report (%s) is ready and available on the Appleseed RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
                  % merged_filename.split('/')[-1]
-    send_gmail('dispentia@gmail.com', 'KHIT Report Notification', email_body)
+    send_gmail('alester@appleseedcmhc.org', 'KHIT Report Notification', email_body)
 
     os.remove('src/csv/treatment_due_dates.csv')
     os.remove('src/csv/primary_workers.csv')
