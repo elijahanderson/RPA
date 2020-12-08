@@ -9,7 +9,7 @@ def service_act_login():
               'https://www.googleapis.com/auth/drive.file',
               'https://www.googleapis.com/auth/drive',
               ]
-    SERVICE_ACCOUNT_FILE = 'data/service_key.json'
+    SERVICE_ACCOUNT_FILE = 'src/data/service_key.json'
 
     credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -20,7 +20,7 @@ def service_act_login():
 def upload_file(filename, folder_id):
     service = service_act_login()
     file_metadata = {
-        'name': filename,
+        'name': filename.split('/')[-1],
         'parents': [folder_id]
     }
     media = MediaFileUpload(filename, resumable=True)

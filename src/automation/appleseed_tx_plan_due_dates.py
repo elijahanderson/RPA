@@ -15,8 +15,8 @@ from infrastructure.last_day_of_month import last_day_of_month
 
 
 def join_datatables():
-    tp_csv = pd.read_csv('csv/treatment_due_dates.csv')
-    pw_csv = pd.read_csv('csv/primary_workers.csv')
+    tp_csv = pd.read_csv('src/csv/treatment_due_dates.csv')
+    pw_csv = pd.read_csv('src/csv/primary_workers.csv')
 
     tp_csv['name'] = tp_csv['name'].str.strip()
     pw_csv['name'] = pw_csv['name'].str.strip()
@@ -35,7 +35,7 @@ def join_datatables():
     merged['expiration_date'] = pd.to_datetime(merged.expiration_date)
     merged.sort_values(by=['primary_worker', 'expiration_date'], inplace=True, ascending=[True, True])
 
-    filename = 'csv/' + str((date.today().replace(day=1) + timedelta(days=31)).month) + '-' + \
+    filename = 'src/csv/' + str((date.today().replace(day=1) + timedelta(days=31)).month) + '-' + \
                str((date.today().replace(day=1) + timedelta(days=62)).month) + '-' + \
                str((date.today().replace(day=1) + timedelta(days=62)).year) + '_treatment_plan_due_dates.csv'
     merged.to_csv(filename, index=False)
@@ -43,20 +43,19 @@ def join_datatables():
 
 
 def browser():
-    print('begin')
     from_date = date.today().replace(day=28) + timedelta(days=4)
     to_date = from_date.replace(day=28) + timedelta(days=4)
     to_date = last_day_of_month(to_date)
-    print('setting up driver')
+    print('Setting up driver...')
     # run in headless mode, enable downloads
     options = webdriver.ChromeOptions()
     options.add_argument('--window-size=1920x1080')
     options.add_argument('--disable-notifications')
     options.add_argument('--no-sandbox')
-    options.add_argument('--disable-setuid-sandbox')
+    options.add_argument("--disable-setuid-sandbox")
     options.add_argument('--verbose')
     options.add_experimental_option('prefs', {
-        'download.default_directory': 'csv',
+        'download.default_directory': 'src/csv',
         'download.prompt_for_download': False,
         'download.directory_upgrade': True,
         'safebrowsing_for_trusted_sources_enabled': False,
@@ -65,24 +64,22 @@ def browser():
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
     options.add_argument('--headless')
-    print('options configured')
     driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver',
                               chrome_options=options)
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
-    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'csv'}}
+    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'src/csv'}}
     driver.execute('send_command', params)
-    print(1)
     driver.get('https://myevolvacmhcxb.netsmartcloud.com/')
     
 
     # login
-    print(2)
     driver.find_element_by_id('MainContent_MainContent_userName').send_keys('khit')
     driver.find_element_by_id('MainContent_MainContent_password').send_keys('Ton8dot4$$')
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
 
+
+
     # navigate to worker case loads (for clients' primary workers)
-    print(3)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[18]/span').click()
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[1]/ul/li[3]').click()
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[2]/ul[2]/li[25]').click()
@@ -107,7 +104,6 @@ def browser():
         .click()
 
     # go back into iframe2 for checkbox
-    print('checkbox')
     driver.implicitly_wait(5)
     driver.switch_to.frame(iframe1)
     driver.implicitly_wait(5)
@@ -137,9 +133,8 @@ def browser():
 
     # rename the downloaded file
     sleep(5)
-    filename = max(['csv' + '/' + f for f in os.listdir('csv')], key=os.path.getctime)
-    shutil.move(filename, 'csv/primary_workers.csv')
-    print('first csv downloaded')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/primary_workers.csv')
 
     # switch to default content to download the treatment plan custom report
     driver.switch_to.default_content()
@@ -185,25 +180,28 @@ def browser():
 
     # rename the downloaded file
     sleep(5)  # wait for download
-    filename = max(['csv' + '/' + f for f in os.listdir('csv')], key=os.path.getctime)
-    shutil.move(filename, 'csv/treatment_due_dates.csv')
-    print('second csv downloaded')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/treatment_due_dates.csv')
 
+    print('Exiting chromedriver...')
     driver.close()
+    driver.quit()
+    print('Killed.')
 
 
 def main():
     browser()
     merged_filename = join_datatables()
+    upload_file(merged_filename, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
     email_body = "Your monthly ISP due dates report (%s) is ready and available on the Appleseed RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
-                 % merged_filename
-    upload_file(merged_filename, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
+                 % merged_filename.split('/')[-1]
     send_gmail('dispentia@gmail.com', 'KHIT Report Notification', email_body)
 
-    os.remove('csv/treatment_due_dates.csv')
-    os.remove('csv/primary_workers.csv')
+    os.remove('src/csv/treatment_due_dates.csv')
+    os.remove('src/csv/primary_workers.csv')
     os.remove(merged_filename)
 
 
-main()
+if __name__ == '__main__':
+    main()

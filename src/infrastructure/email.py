@@ -51,7 +51,7 @@ def send_message(service, user_id, message):
 def service_act_login():
     """ Log into gmail service account. """
     SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-    SERVICE_ACCOUNT_FILE = '../data/service_key.json'
+    SERVICE_ACCOUNT_FILE = 'src/data/service_key.json'
 
     credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
