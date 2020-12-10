@@ -1,3 +1,10 @@
+import os
+import pandas as pd
+import shutil
+import sys
+import yaml
+sys.path[0] = '/home/eanderson/RPA/src'
+
 from datetime import date, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -6,14 +13,6 @@ from time import sleep
 from infrastructure.drive_upload import upload_file
 from infrastructure.email import send_gmail
 from infrastructure.last_day_of_month import last_day_of_month
-
-import os
-import pandas as pd
-import shutil
-import sys
-import yaml
-
-sys.path[0] = '/home/eanderson/RPA/src'
 
 
 def join_datatables():
@@ -193,7 +192,7 @@ def browser():
 
 
 def main():
-    print('Began Appleseed ISP Due Dates RPA...')
+    print('Beginning Appleseed ISP Due Dates RPA...')
     browser()
     merged_filename = join_datatables()
     upload_file(merged_filename, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
@@ -213,5 +212,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        email_body = 'System encountered an error running Appleseed ISP Due Dates RPA: ', e
+        print('System encountered an error running Appleseed MHA Due Dates RPA: %s' % e)
+        email_body = 'System encountered an error running Appleseed MHA Due Dates RPA: %s' % e
         send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+

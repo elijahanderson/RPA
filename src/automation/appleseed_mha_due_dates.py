@@ -1,3 +1,11 @@
+import os
+import pandas as pd
+import shutil
+import sys
+import yaml
+
+sys.path[0] = '/home/eanderson/RPA/src'
+
 from datetime import date, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -6,14 +14,6 @@ from time import sleep
 from infrastructure.drive_upload import upload_file
 from infrastructure.email import send_gmail
 from infrastructure.last_day_of_month import last_day_of_month
-
-import os
-import pandas as pd
-import shutil
-import sys
-import yaml
-
-sys.path[0] = '/home/eanderson/RPA/src'
 
 
 def join_datatables():
@@ -67,10 +67,10 @@ def browser():
     driver.get('https://myevolvacmhcxb.netsmartcloud.com/')
 
     # login
-    with open('../config/login.yml', 'r') as yml:
+    with open('src/config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
         usr = login['appleseed']
-        pwd = login['pass']
+        pwd = login['pwd']
     driver.find_element_by_id('MainContent_MainContent_userName').send_keys(usr)
     driver.find_element_by_id('MainContent_MainContent_password').send_keys(pwd)
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
@@ -187,7 +187,7 @@ def browser():
 
 
 def main():
-    print('Began Appleseed MHA Due Dates RPA...')
+    print('Beginning Appleseed MHA Due Dates RPA...')
     browser()
     merged_filename = join_datatables()
     upload_file(merged_filename, '1zJLra5w3M9jxRbD3ac5GA4lzu1WRH9AQ')
@@ -207,5 +207,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        email_body = 'System encountered an error running Appleseed MHA Due Dates RPA: ', e
+        print('System encountered an error running Appleseed MHA Due Dates RPA: %s' % e)
+        email_body = 'System encountered an error running Appleseed MHA Due Dates RPA: %s' % e
         send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+
