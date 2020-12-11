@@ -47,13 +47,13 @@ def browser():
     from_date = date.today().replace(day=28) + timedelta(days=4)
     to_date = from_date.replace(day=28) + timedelta(days=4)
     to_date = last_day_of_month(to_date)
-    print('Setting up driver...')
+    print('Setting up driver...', end=' ')
     # run in headless mode, enable downloads
     options = webdriver.ChromeOptions()
     options.add_argument('--window-size=1920x1080')
     options.add_argument('--disable-notifications')
     options.add_argument('--no-sandbox')
-    options.add_argument("--disable-setuid-sandbox")
+    options.add_argument('--disable-setuid-sandbox')
     options.add_argument('--verbose')
     options.add_experimental_option('prefs', {
         'download.default_directory': 'src/csv',
@@ -70,13 +70,15 @@ def browser():
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
     params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'src/csv'}}
     driver.execute('send_command', params)
+    print('Done.')
+
     driver.get('https://myevolvacmhcxb.netsmartcloud.com/')
 
     # login
     with open('src/config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
         usr = login['appleseed']
-        pwd = login['pass']
+        pwd = login['pwd']
     driver.find_element_by_id('MainContent_MainContent_userName').send_keys(usr)
     driver.find_element_by_id('MainContent_MainContent_password').send_keys(pwd)
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
@@ -185,10 +187,10 @@ def browser():
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/treatment_due_dates.csv')
 
-    print('Exiting chromedriver...')
+    print('Exiting chromedriver...', end=' ')
     driver.close()
     driver.quit()
-    print('Killed.')
+    print('Process killed.')
 
 
 def main():
@@ -199,8 +201,8 @@ def main():
     email_body = "Your monthly ISP due dates report (%s) is ready and available on the Appleseed RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
                  % merged_filename.split('/')[-1]
-    send_gmail('alester@appleseedcmhc.org', 'KHIT Report Notification', email_body)
-
+    send_gmail('dispentia@gmail.com', 'KHIT Report Notification', email_body)
+    # alester@appleseedcmhc.org
     os.remove('src/csv/treatment_due_dates.csv')
     os.remove('src/csv/primary_workers.csv')
     os.remove(merged_filename)
@@ -212,7 +214,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        print('System encountered an error running Appleseed MHA Due Dates RPA: %s' % e)
+        print('System encountered an error running Appleseed ISP Due Dates RPA: %s' % e)
         email_body = 'System encountered an error running Appleseed MHA Due Dates RPA: %s' % e
         send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
 

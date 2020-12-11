@@ -41,7 +41,7 @@ def browser():
     from_date = date.today().replace(day=28) + timedelta(days=4)
     to_date = from_date.replace(day=28) + timedelta(days=4)
     to_date = last_day_of_month(to_date)
-    print('Setting up driver...')
+    print('Setting up driver...', end=' ')
     # run in headless mode, enable downloads
     options = webdriver.ChromeOptions()
     options.add_argument('--window-size=1920x1080')
@@ -64,6 +64,8 @@ def browser():
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
     params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'src/csv'}}
     driver.execute('send_command', params)
+    print('Done.')
+
     driver.get('https://myevolvacmhcxb.netsmartcloud.com/')
 
     # login
@@ -180,10 +182,10 @@ def browser():
 
     sleep(20)
 
-    print('Exiting chromedriver...')
+    print('Exiting chromedriver...', end=' ')
     driver.close()
     driver.quit()
-    print('Killed.')
+    print('Process killed.')
 
 
 def main():
@@ -200,7 +202,7 @@ def main():
     os.remove('src/csv/direct_staff.csv')
     os.remove(merged_filename)
 
-    print('Successfully finished Appleseed ISP Due Dates RPA!')
+    print('Successfully finished Appleseed MHA Due Dates RPA!')
 
 
 if __name__ == '__main__':
