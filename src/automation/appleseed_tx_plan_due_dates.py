@@ -201,8 +201,8 @@ def main():
     email_body = "Your monthly ISP due dates report (%s) is ready and available on the Appleseed RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
                  % merged_filename.split('/')[-1]
-    send_gmail('dispentia@gmail.com', 'KHIT Report Notification', email_body)
-    # alester@appleseedcmhc.org
+    send_gmail('alester@appleseedcmhc.org', 'KHIT Report Notification', email_body)
+    
     os.remove('src/csv/treatment_due_dates.csv')
     os.remove('src/csv/primary_workers.csv')
     os.remove(merged_filename)
