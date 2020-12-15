@@ -88,7 +88,7 @@ def fancify(curr_date):
     xl_writer_moffett.save()
 
     # create folder to upload and move xl sheets to it
-    path = 'src/csv/' + curr_date.strftime('%m-%Y') + 'ABHS Service Entry Reports'
+    path = 'src/csv/' + curr_date.strftime('%m-%Y') + ' ABHS Service Entry Reports'
     os.mkdir(path)
     shutil.move('src/csv/report_bruns.xlsx', path)
     shutil.move('src/csv/report_moffett.xlsx', path)
@@ -191,10 +191,6 @@ def browser(from_date, to_date):
     shutil.move(filename, 'src/csv/report_bruns.csv')
 
     # download the CSV for Kelly's client info
-    driver.switch_to.frame(iframe1)
-    driver.implicitly_wait(5)
-    driver.switch_to.frame(iframe2)
-    driver.implicitly_wait(5)
     driver.switch_to.frame(iframe_params)
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/table/tbody/tr[1]/td[4]/div/input') \
@@ -231,17 +227,17 @@ def main():
 
     os.remove('src/csv/report_bruns.csv')
     os.remove('src/csv/report_moffett.csv')
-    os.remove(folder_path)
+    shutil.rmtree(folder_path)
 
     print('Successfully finished ABHS Client Services RPA!')
 
 
-try:
-    main()
-    send_gmail('eanderson@khitconsulting.com',
+#try:
+main()
+send_gmail('eanderson@khitconsulting.com',
                'KHIT Report Notification',
                'Successfully finished ABHS Client Services RPA!')
-except Exception as e:
-    print('System encountered an error running ABHS Service Entry RPA: %s' % e)
-    email_body = 'System encountered an error running ABHS Service Entry RPA: %s' % e
-    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+#except Exception as e:
+#    print('System encountered an error running ABHS Service Entry RPA: %s' % e)
+#    email_body = 'System encountered an error running ABHS Service Entry RPA: %s' % e
+#    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
