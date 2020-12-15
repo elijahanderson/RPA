@@ -11,14 +11,93 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 
-from infrastructure.drive_upload import upload_file
+from infrastructure.drive_upload import upload_folder
 from infrastructure.email import send_gmail
-from infrastructure.last_day_of_month import last_day_of_month
 
 
-def browser():
-    from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
-    to_date = last_day_of_month(date.today())
+def fancify(curr_date):
+    print('Initiating fancification...', end=' ')
+    report_bruns = pd.read_csv('src/csv/report_bruns.csv')
+    report_moffett = pd.read_csv('src/csv/report_moffett.csv')
+    report_bruns = report_bruns[['full_name', 'id_no', 'program_name', 'event_name', 'staff_name', 'duration',
+                                 'actual_date', 'date_entered']]
+    report_moffett = report_moffett[['full_name', 'id_no', 'program_name', 'event_name', 'staff_name', 'duration',
+                                     'actual_date', 'date_entered']]
+    report_bruns['actual_date'] = pd.to_datetime(report_bruns.actual_date)
+    report_bruns['date_entered'] = pd.to_datetime(report_bruns.date_entered)
+    report_moffett['actual_date'] = pd.to_datetime(report_moffett.actual_date)
+    report_moffett['date_entered'] = pd.to_datetime(report_moffett.date_entered)
+
+    report_bruns['date_diff'] = report_bruns['date_entered'] - report_bruns['actual_date']
+    report_moffett['date_diff'] = report_moffett['date_entered'] - report_moffett['actual_date']
+
+    report_bruns.sort_values(by=['staff_name', 'actual_date'], inplace=True)
+    report_moffett.sort_values(by=['staff_name', 'actual_date'], inplace=True)
+
+    xl_writer_bruns = pd.ExcelWriter('src/csv/report_bruns.xlsx', engine='xlsxwriter')
+    xl_writer_moffett = pd.ExcelWriter('src/csv/report_moffett.xlsx', engine='xlsxwriter')
+
+    report_bruns.to_excel(xl_writer_bruns, sheet_name='Bruns', index=False)
+    report_moffett.to_excel(xl_writer_moffett, sheet_name='Moffett', index=False)
+    workbook_bruns = xl_writer_bruns.book
+    workbook_moffett = xl_writer_moffett.book
+    worksheet_bruns = xl_writer_bruns.sheets['Bruns']
+    worksheet_moffett = xl_writer_moffett.sheets['Moffett']
+
+    red_format_bruns = workbook_bruns.add_format({'bg_color': '#FF4C4C',
+                                                  'font_color': '#9C0006'})
+    yellow_format_bruns = workbook_bruns.add_format({'bg_color':   '#FFEB9C',
+                                                     'font_color': '#9C6500'})
+    green_format_bruns = workbook_bruns.add_format({'bg_color':   '#C6EFCE',
+                                                    'font_color': '#006100'})
+    worksheet_bruns.conditional_format('I2:I'+str(len(report_bruns)+1), {'type': 'cell',
+                                                                  'criteria': '>',
+                                                                  'value': 3.5,
+                                                                  'format': red_format_bruns})
+    worksheet_bruns.conditional_format('I2:I' + str(len(report_bruns)+1), {'type': 'cell',
+                                                                         'criteria': 'between',
+                                                                         'minimum': 1.5,
+                                                                         'maximum': 3.5,
+                                                                         'format': yellow_format_bruns})
+    worksheet_bruns.conditional_format('I2:I' + str(len(report_bruns)+1), {'type': 'cell',
+                                                                         'criteria': '<',
+                                                                         'value': 1.5,
+                                                                         'format': green_format_bruns})
+
+    red_format_moffett = workbook_moffett.add_format({'bg_color': '#FF4C4C',
+                                                  'font_color': '#9C0006'})
+    yellow_format_moffett = workbook_moffett.add_format({'bg_color': '#FFEB9C',
+                                                     'font_color': '#9C6500'})
+    green_format_moffett = workbook_moffett.add_format({'bg_color': '#C6EFCE',
+                                                    'font_color': '#006100'})
+    worksheet_moffett.conditional_format('I2:I' + str(len(report_moffett) + 1), {'type': 'cell',
+                                                                             'criteria': '>',
+                                                                             'value': 3.5,
+                                                                             'format': red_format_moffett})
+    worksheet_moffett.conditional_format('I2:I' + str(len(report_moffett) + 1), {'type': 'cell',
+                                                                             'criteria': 'between',
+                                                                             'minimum': 1.5,
+                                                                             'maximum': 3.5,
+                                                                             'format': yellow_format_moffett})
+    worksheet_moffett.conditional_format('I2:I' + str(len(report_moffett) + 1), {'type': 'cell',
+                                                                             'criteria': '<',
+                                                                             'value': 1.5,
+                                                                             'format': green_format_moffett})
+
+    xl_writer_bruns.save()
+    xl_writer_moffett.save()
+
+    # create folder to upload and move xl sheets to it
+    path = 'src/csv/' + curr_date.strftime('%m-%Y') + 'ABHS Service Entry Reports'
+    os.mkdir(path)
+    shutil.move('src/csv/report_bruns.xlsx', path)
+    shutil.move('src/csv/report_moffett.xlsx', path)
+
+    print('Fancified.')
+    return path
+
+
+def browser(from_date, to_date):
     print('Setting up driver...', end=' ')
 
     # run in headless mode, enable downloads
@@ -37,8 +116,8 @@ def browser():
     })
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
-    # options.add_argument('--headless') # LINUX change to /usr/bin/chromedriver
-    driver = webdriver.Chrome(executable_path='C:\\Users\\mingus\\AppData\\Local\\chromedriver.exe',
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver',
                               chrome_options=options)
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
     params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'src/csv'}}
@@ -47,8 +126,8 @@ def browser():
 
     driver.get('https://myevolvwmabhsxb.netsmartcloud.com/')
 
-    # login -- LINUX change to src/config/login.yml
-    with open('../config/login.yml', 'r') as yml:
+    # login
+    with open('src/config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
         usr = login['abhs']
         pwd = login['pwd']
@@ -82,7 +161,7 @@ def browser():
     driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]/td[1]') \
         .click()
 
-    # switch to parameters iframe and add parameters
+    # switch to parameters iframe and add parameters to download Amanda's client info
     driver.switch_to.frame(iframe1)
     driver.implicitly_wait(5)
     driver.switch_to.frame(iframe2)
@@ -106,24 +185,63 @@ def browser():
     driver.switch_to.frame(iframe2)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/ul/li[17]/a').click()
 
-    sleep(20)
+    # rename the downloaded file
+    sleep(5)
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/report_bruns.csv')
+
+    # download the CSV for Kelly's client info
+    driver.switch_to.frame(iframe1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(iframe2)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(iframe_params)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/table/tbody/tr[1]/td[4]/div/input') \
+        .send_keys('Moffett, Kelly' + Keys.TAB)
+    sleep(1)
+    driver.switch_to.default_content()
+    driver.switch_to.default_content()
+    driver.switch_to.default_content()
+    driver.switch_to.frame(iframe1)
+    driver.switch_to.frame(iframe2)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/ul/li[17]/a').click()
+    sleep(5)
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/report_moffett.csv')
+
+    print('Exiting chromedriver...', end=' ')
+    driver.close()
+    driver.quit()
+    print('Process killed.')
 
 
 def main():
     print('Beginning ABHS Client Services RPA...')
-    browser()
-    merged_filename = None
-    # upload_file(merged_filename, '1zJLra5w3M9jxRbD3ac5GA4lzu1WRH9AQ')
-    # email_body = "Your monthly MHA due dates report (%s) is ready and available on the Appleseed RPA " \
-    #              "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
-    #              % merged_filename.split('/')[-1]
-    # send_gmail('alester@appleseedcmhc.org', 'KHIT Report Notification', email_body)
-    #
-    # os.remove('src/csv/mha_due_dates.csv')
-    # os.remove('src/csv/direct_staff.csv')
-    # os.remove(merged_filename)
+    from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
+    to_date = date.today().replace(day=1) - timedelta(days=1)
+
+    browser(from_date, to_date)
+    folder_path = fancify(from_date)
+    upload_folder(folder_path, '1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C')
+    email_body = "Your monthly service entry reports (%s) are ready and available on the ABHS RPA " \
+                 "Reports shared drive: https://drive.google.com/drive/folders/1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C" \
+                 % folder_path.split('/')[-1]
+    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+
+    os.remove('src/csv/report_bruns.csv')
+    os.remove('src/csv/report_moffett.csv')
+    os.remove(folder_path)
 
     print('Successfully finished ABHS Client Services RPA!')
 
 
-main()
+try:
+    main()
+    send_gmail('eanderson@khitconsulting.com',
+               'KHIT Report Notification',
+               'Successfully finished ABHS Client Services RPA!')
+except Exception as e:
+    print('System encountered an error running ABHS Service Entry RPA: %s' % e)
+    email_body = 'System encountered an error running ABHS Service Entry RPA: %s' % e
+    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
