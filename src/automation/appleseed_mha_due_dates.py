@@ -187,6 +187,7 @@ def browser():
 
 
 def main():
+    print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
     print('Beginning Appleseed MHA Due Dates RPA...')
     browser()
     merged_filename = join_datatables()

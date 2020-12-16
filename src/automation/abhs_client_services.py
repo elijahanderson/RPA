@@ -213,6 +213,7 @@ def browser(from_date, to_date):
 
 
 def main():
+    print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
     print('Beginning ABHS Client Services RPA...')
     from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
     to_date = date.today().replace(day=1) - timedelta(days=1)
@@ -232,12 +233,12 @@ def main():
     print('Successfully finished ABHS Client Services RPA!')
 
 
-#try:
-main()
-send_gmail('eanderson@khitconsulting.com',
+try:
+    main()
+    send_gmail('eanderson@khitconsulting.com',
                'KHIT Report Notification',
                'Successfully finished ABHS Client Services RPA!')
-#except Exception as e:
-#    print('System encountered an error running ABHS Service Entry RPA: %s' % e)
-#    email_body = 'System encountered an error running ABHS Service Entry RPA: %s' % e
-#    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+except Exception as e:
+    print('System encountered an error running ABHS Service Entry RPA: %s' % e)
+    email_body = 'System encountered an error running ABHS Service Entry RPA: %s' % e
+    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
