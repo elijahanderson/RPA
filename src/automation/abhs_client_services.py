@@ -224,7 +224,8 @@ def main():
     email_body = "Your monthly service entry reports (%s) are ready and available on the ABHS RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C" \
                  % folder_path.split('/')[-1]
-    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+    send_gmail('amanda.bruns@wmabhs.org', 'KHIT Report Notification', email_body)
+    send_gmail('kelly.moffett-place@wmabhs.org', 'KHIT Report Notification', email_body)
 
     os.remove('src/csv/report_bruns.csv')
     os.remove('src/csv/report_moffett.csv')
