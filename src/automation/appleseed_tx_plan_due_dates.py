@@ -194,6 +194,7 @@ def browser():
 
 
 def main():
+    print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
     print('Beginning Appleseed ISP Due Dates RPA...')
     browser()
     merged_filename = join_datatables()
@@ -213,6 +214,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+        send_gmail('eanderson@khitconsulting.com',
+                   'KHIT Report Notification',
+                   'Successfully finished Appleseed ISP Due Dates RPA!')
     except Exception as e:
         print('System encountered an error running Appleseed ISP Due Dates RPA: %s' % e)
         email_body = 'System encountered an error running Appleseed MHA Due Dates RPA: %s' % e

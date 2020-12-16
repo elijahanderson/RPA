@@ -5,5 +5,6 @@ google_auth_oauthlib
 httplib2
 oauth2
 pandas
-selenium
 pyyaml
+selenium
+xlsxwriter

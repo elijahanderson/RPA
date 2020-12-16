@@ -180,8 +180,6 @@ def browser():
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/mha_due_dates.csv')
 
-    sleep(20)
-
     print('Exiting chromedriver...', end=' ')
     driver.close()
     driver.quit()
@@ -189,6 +187,7 @@ def browser():
 
 
 def main():
+    print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
     print('Beginning Appleseed MHA Due Dates RPA...')
     browser()
     merged_filename = join_datatables()
@@ -208,6 +207,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+        send_gmail('eanderson@khitconsulting.com',
+                   'KHIT Report Notification',
+                   'Successfully finished Appleseed MHA Due Dates RPA!')
     except Exception as e:
         print('System encountered an error running Appleseed MHA Due Dates RPA: %s' % e)
         email_body = 'System encountered an error running Appleseed MHA Due Dates RPA: %s' % e
