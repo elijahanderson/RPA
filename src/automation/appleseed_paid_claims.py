@@ -47,7 +47,11 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath(
         '/html/body/form/div[3]/center/table/tbody/tr[4]/td/div/div/div[4]/input[1]').click()
 
-    sleep(20)
+    driver.find_element_by_xpath("//DIV[@id='tbTaskBar']/DIV/DIV/DIV/UL/LI[32]/A").click()
+    iframe1 = driver.find_element_by_id('app_FINANCE')
+    driver.switch_to.frame(iframe1)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath("//DIV[@class='rtTop rtHover']").click()
 
 
 def main():
