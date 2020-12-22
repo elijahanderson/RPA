@@ -47,11 +47,25 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath(
         '/html/body/form/div[3]/center/table/tbody/tr[4]/td/div/div/div[4]/input[1]').click()
 
+    # navigate to claim details
     driver.find_element_by_xpath("//DIV[@id='tbTaskBar']/DIV/DIV/DIV/UL/LI[32]/A").click()
-    iframe1 = driver.find_element_by_id('app_FINANCE')
-    driver.switch_to.frame(iframe1)
+    finance_frame = driver.find_element_by_id('app_FINANCE')
+    driver.switch_to.frame(finance_frame)
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath("//DIV[@class='rtTop rtHover']").click()
+    driver.find_element_by_xpath("//DIV[@id='contents_rpbNavigation_i10_i0_rtvSubModules']/ul[1]/li[1]/div/span").click()
+    sleep(1)
+    driver.find_element_by_xpath("//DIV[@id='contents_rpbNavigation_i10_i0_rtvSubModules']/ul[1]/li[1]/ul[1]/li[1]/div/span[2]").click()
+    driver.implicitly_wait(10)
+
+    # fill in form info
+    internal_frame = driver.find_element_by_class_name('internal_iframe')
+    driver.switch_to.frame(internal_frame)
+    driver.implicitly_wait(5)
+    form_frame = driver.find_element_by_id('iframe_frameset_0')
+    driver.switch_to.frame(form_frame)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath("//INPUT[@id='from_date']").send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath("//INPUT[@id='thru_date']").send_keys(to_date.strftime('%m/%d/%Y'))
 
 
 def main():
