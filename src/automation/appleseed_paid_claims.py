@@ -68,17 +68,100 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath("//INPUT[@id='from_date']").send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath("//INPUT[@id='thru_date']").send_keys(to_date.strftime('%m/%d/%Y'))
 
-    # switch back to default content for report selection
+    # report selection
     driver.find_element_by_id('caption_var_report_selection').click()
-    sleep(2)
     parent_handle = driver.current_window_handle
     handles = driver.window_handles
     handles.remove(parent_handle)
     driver.switch_to.window(handles.pop())
-    select_table = driver.find_element_by_id('table_content')
-    # TODO -- click 'All Claims'
+    driver.implicitly_wait(5)
+    ActionChains(driver).send_keys(Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.ENTER).perform()
     # popup window closes, switch back
     driver.switch_to.window(parent_handle)
+    driver.implicitly_wait(5)
+
+    # parameters frame
+    driver.switch_to.frame(finance_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(internal_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(form_frame)
+    driver.implicitly_wait(5)
+    params_frame = driver.find_element_by_id('5660DDAB-617F-452A-8043-4DE9DF0A105A')
+    driver.switch_to.frame(params_frame)
+    driver.find_element_by_xpath("//BUTTON[@id='parameter_btn']").click()
+    parent_handle = driver.current_window_handle
+    handles = driver.window_handles
+    handles.remove(parent_handle)
+    driver.switch_to.window(handles.pop())
+    driver.implicitly_wait(5)
+    ActionChains(driver).send_keys(Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB +
+                                   Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.ENTER)\
+        .perform()
+    # popup window closes, switch back
+    driver.switch_to.window(parent_handle)
+    driver.implicitly_wait(5)
+
+    driver.switch_to.frame(finance_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(internal_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(form_frame)
+    driver.implicitly_wait(5)
+    params_frame = driver.find_element_by_id('5660DDAB-617F-452A-8043-4DE9DF0A105A')
+    driver.switch_to.frame(params_frame)
+    driver.find_element_by_xpath("//BUTTON[@id='parameter_value_btn']").click()
+    parent_handle = driver.current_window_handle
+    handles = driver.window_handles
+    handles.remove(parent_handle)
+    driver.switch_to.window(handles.pop())
+    driver.implicitly_wait(5)
+    ActionChains(driver).send_keys(Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB +
+                                   Keys.TAB + Keys.ENTER).perform()
+    # popup window closes, switch back
+    driver.switch_to.window(parent_handle)
+    driver.implicitly_wait(5)
+
+    driver.switch_to.frame(finance_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(internal_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(form_frame)
+    driver.implicitly_wait(5)
+    params_frame = driver.find_element_by_id('5660DDAB-617F-452A-8043-4DE9DF0A105A')
+    driver.switch_to.frame(params_frame)
+    driver.find_element_by_xpath("//TABLE[@id='main_table']/tbody[3]/form/tr/td[2]/table/tbody/tr/td[2]/button").click()
+    parent_handle = driver.current_window_handle
+    handles = driver.window_handles
+    handles.remove(parent_handle)
+    driver.switch_to.window(handles.pop())
+    driver.implicitly_wait(5)
+    ActionChains(driver).send_keys(Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB +
+                                   Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.ENTER) \
+        .perform()
+    # popup window closes, switch back
+    driver.switch_to.window(parent_handle)
+    driver.implicitly_wait(5)
+
+    driver.switch_to.frame(finance_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(internal_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(form_frame)
+    driver.implicitly_wait(5)
+    params_frame = driver.find_element_by_id('5660DDAB-617F-452A-8043-4DE9DF0A105A')
+    driver.switch_to.frame(params_frame)
+    driver.find_element_by_xpath("//TABLE[@id='main_table']/tbody[3]/form/tr/td[4]/table/tbody/tr/td[2]/button").click()
+    parent_handle = driver.current_window_handle
+    handles = driver.window_handles
+    handles.remove(parent_handle)
+    driver.switch_to.window(handles.pop())
+    driver.implicitly_wait(5)
+    ActionChains(driver).send_keys(Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB + Keys.TAB +
+                                   Keys.TAB + Keys.TAB + Keys.ENTER).perform()
+    # popup window closes, switch back
+    driver.switch_to.window(parent_handle)
+    driver.implicitly_wait(5)
 
 
 def main():
