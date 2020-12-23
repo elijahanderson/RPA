@@ -7,6 +7,7 @@ sys.path[0] = '/home/eanderson/RPA/src'
 
 from datetime import date, timedelta
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 
@@ -57,7 +58,7 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath("//DIV[@id='contents_rpbNavigation_i10_i0_rtvSubModules']/ul[1]/li[1]/ul[1]/li[1]/div/span[2]").click()
     driver.implicitly_wait(10)
 
-    # fill in form info
+    # fill in dates
     internal_frame = driver.find_element_by_class_name('internal_iframe')
     driver.switch_to.frame(internal_frame)
     driver.implicitly_wait(5)
@@ -66,6 +67,18 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.find_element_by_xpath("//INPUT[@id='from_date']").send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath("//INPUT[@id='thru_date']").send_keys(to_date.strftime('%m/%d/%Y'))
+
+    # switch back to default content for report selection
+    driver.find_element_by_id('caption_var_report_selection').click()
+    sleep(2)
+    parent_handle = driver.current_window_handle
+    handles = driver.window_handles
+    handles.remove(parent_handle)
+    driver.switch_to.window(handles.pop())
+    select_table = driver.find_element_by_id('table_content')
+    # TODO -- click 'All Claims'
+    # popup window closes, switch back
+    driver.switch_to.window(parent_handle)
 
 
 def main():
