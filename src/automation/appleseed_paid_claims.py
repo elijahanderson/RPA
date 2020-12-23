@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import pyautogui
 import shutil
 import sys
 import yaml
@@ -171,13 +172,14 @@ def browser(from_date, to_date):
     driver.switch_to.frame(form_frame)
     driver.implicitly_wait(5)
     driver.find_element_by_id('data_only').click()
-    driver.implicitly_wait(15)
+    driver.implicitly_wait(20)
     # switch to new tab
     driver.switch_to.window(driver.window_handles[-1])
+    sleep(5)
     driver.implicitly_wait(5)
-    href = driver.find_element_by_class_name('button').get_attribute('href')
-    sleep(2)
-    os.system('sudo wget ' + href + '-O src/csv/paid_claims.csv')
+    driver.find_element_by_class_name('button').click()
+    sleep(1)
+    # TODO -- figure out how to download this bitch
 
     print('Exiting IEDriver...', end=' ')
     driver.close()
