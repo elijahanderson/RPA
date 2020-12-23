@@ -163,6 +163,27 @@ def browser(from_date, to_date):
     driver.switch_to.window(parent_handle)
     driver.implicitly_wait(5)
 
+    # download the report
+    driver.switch_to.frame(finance_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(internal_frame)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(form_frame)
+    driver.implicitly_wait(5)
+    driver.find_element_by_id('data_only').click()
+    driver.implicitly_wait(15)
+    # switch to new tab
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    href = driver.find_element_by_class_name('button').get_attribute('href')
+    sleep(2)
+    os.system('sudo wget ' + href + '-O src/csv/paid_claims.csv')
+
+    print('Exiting IEDriver...', end=' ')
+    driver.close()
+    driver.quit()
+    print('Process killed.')
+
 
 def main():
     print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
