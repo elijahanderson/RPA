@@ -16,21 +16,22 @@ from infrastructure.drive_upload import upload_folder
 from infrastructure.email import send_gmail
 
 
-def has_clients(df):
-    for staff, frame in df.groupby('staff_name'):
-        print(frame)
+def create_isls(df):
+    for staff, frame in df.sort_values(['Full Name']).groupby('staff_name'):
         isl_pdf = FPDF(orientation='L')
         isl_pdf.add_page()
         isl_pdf.set_font(family='Arial', size=11)
-        isl_pdf.cell(w=0, h=7, txt='ALAMEDA COUNTY BEHAVIORAL HEALTH CARE - MENTAL HEALTH', align='C', ln=2)
-        isl_pdf.cell(w=0, h=15, txt='INDIVIDUAL STAFF LOG', align='C', ln=2)
-        isl_pdf.cell(w=0, h=10, txt='REPORTING UNIT: 01EI1 - City of Fremont MMH', align='L', ln=0)
-        isl_pdf.cell(w=0, h=15, txt='STAFF NAME: %s' % staff, align='R', ln=1)
+        isl_pdf.cell(w=0, h=4, txt='ALAMEDA COUNTY BEHAVIORAL HEALTH CARE - MENTAL HEALTH', align='C', ln=2)
+        isl_pdf.cell(w=0, h=5, txt='INDIVIDUAL STAFF LOG', align='C', ln=2)
+        isl_pdf.cell(w=0, h=10, txt='REPORTING UNIT:    01EI1 - City of Fremont MMH', align='L', ln=0)
+        isl_pdf.cell(w=0, h=10, txt='STAFF NAME:    %s' % staff, align='R', ln=1)
+        isl_pdf.cell(w=0, h=10, txt='DATE OF SERVICES:    %s' % '12/28/2020')  # TODO -- date.today().strftime('%m/%d/%y'))
+        isl_pdf.cell(w=0, h=10, txt='STAFF NO: ________________', align='R', ln=1)
         isl_pdf.multi_cell(w=0, h=5, txt='CONFIDENTIAL INFORMATION\nCalifornia W & I Code Section 5328\n\n', align='C')
-        isl_pdf.dashed_line(90, 46, 210, 46)
-        isl_pdf.dashed_line(90, 57, 210, 57)
-        isl_pdf.dashed_line(90, 46, 90, 57)
-        isl_pdf.dashed_line(210, 46, 210, 57)
+        isl_pdf.dashed_line(95, 38, 205, 38)
+        isl_pdf.dashed_line(95, 49, 205, 49)
+        isl_pdf.dashed_line(95, 38, 95, 49)
+        isl_pdf.dashed_line(205, 38, 205, 49)
 
         # staff events with clients
         isl_pdf.set_font(family='Arial', size=9)
@@ -41,70 +42,153 @@ def has_clients(df):
         isl_pdf.x = isl_pdf.x + 60
         isl_pdf.y = isl_pdf.y - 12
         isl_pdf.cell(w=30, h=12, txt='INSYST #', border=1)
-        isl_pdf.cell(w=40, h=12, txt='Client Name', border=1)
+        isl_pdf.cell(w=30, h=12, txt='Client Name', border=1)
         isl_pdf.multi_cell(w=30, h=6, txt='County\nProcedure', border=1)
-        isl_pdf.x = isl_pdf.x + 160
+        isl_pdf.x = isl_pdf.x + 150
         isl_pdf.y = isl_pdf.y - 12
         isl_pdf.multi_cell(w=20, h=6, txt='Proc#\nDate', border=1)
-        isl_pdf.x = isl_pdf.x + 180
+        isl_pdf.x = isl_pdf.x + 170
         isl_pdf.y = isl_pdf.y - 12
         isl_pdf.multi_cell(w=15, h=4, txt='InSyst\nProc.\nCode', border=1)
+        isl_pdf.x = isl_pdf.x + 185
+        isl_pdf.y = isl_pdf.y - 12
+        isl_pdf.multi_cell(w=10, h=6, txt='CPT\nCode', border=1)
         isl_pdf.x = isl_pdf.x + 195
         isl_pdf.y = isl_pdf.y - 12
-        isl_pdf.multi_cell(w=20, h=6, txt='CPT\nCode', border=1)
-        isl_pdf.x = isl_pdf.x + 215
+        isl_pdf.cell(w=11, h=12, txt='Compl.', border=1)
+        isl_pdf.multi_cell(w=10, h=6, txt='Total\nTime', border=1)
+        isl_pdf.x = isl_pdf.x + 216
         isl_pdf.y = isl_pdf.y - 12
-        isl_pdf.cell(w=15, h=12, txt='Compl.', border=1)
-        isl_pdf.multi_cell(w=15, h=6, txt='Total\nTime', border=1)
-        isl_pdf.x = isl_pdf.x + 245
-        isl_pdf.y = isl_pdf.y - 12
-        isl_pdf.multi_cell(w=15, h=6, txt='FTF\nTime', border=1)
-        isl_pdf.x = isl_pdf.x + 260
+        vert_col_y = isl_pdf.y + 24
+        isl_pdf.multi_cell(w=10, h=6, txt='FTF\nTime', border=1)
+        isl_pdf.x = isl_pdf.x + 226
         isl_pdf.y = isl_pdf.y - 12
         isl_pdf.multi_cell(w=15, h=6, txt='County\nLoc', border=1)
-        isl_pdf.x = isl_pdf.x + 275
+        isl_pdf.x = isl_pdf.x + 241
         isl_pdf.y = isl_pdf.y - 12
-        isl_pdf.multi_cell(w=15, h=6, txt='Medicare\nLoc', border=1)
-        isl_pdf.x = isl_pdf.x + 290
+        isl_pdf.multi_cell(w=16, h=6, txt='Medicare\nLoc', border=1)
+        isl_pdf.x = isl_pdf.x + 257
         isl_pdf.y = isl_pdf.y - 12
-        isl_pdf.multi_cell(w=15, h=12, txt='DX\nCode', border=1)
+        isl_pdf.multi_cell(w=10, h=6, txt='DX\nCode', border=1)
+
+        has_row = False
         for idx, row in frame.iterrows():
             if not pd.isna(row['Full Name']):
                 if row['vendor_name'] == 'Medi-Cal':
-                    isl_pdf.cell(w=40, h=12, txt=row['policy_num'], border=1)
+                    isl_pdf.cell(w=30, h=12, txt=row['policy_num'], border=1)
                 else:
-                    isl_pdf.cell(w=40, h=12, txt='', border=1)
+                    isl_pdf.cell(w=30, h=12, txt='', border=1)
                 if row['vendor_name'] == 'Medicare':
-                    isl_pdf.cell(w=40, h=12, txt=row['policy_num'], border=1)
+                    isl_pdf.cell(w=30, h=12, txt=row['policy_num'], border=1)
                 else:
-                    isl_pdf.cell(w=40, h=12, txt='', border=1)
-                isl_pdf.cell(w=30, h=12, txt=str(row['insyst']), border=1)
-                isl_pdf.cell(w=40, h=12, txt=row['Full Name'], border=1)
-                isl_pdf.cell(w=40, h=12, txt=row['event_name'], border=1)
-                isl_pdf.cell(w=30, h=12, txt=row['service_date'].strftime('%m/%d/%y'), border=1)
-                isl_pdf.cell(w=20, h=12, txt='', border=1)
-                isl_pdf.cell(w=20, h=12, txt='', border=1)
-                isl_pdf.cell(w=15, h=12, txt='', border=1)
-                isl_pdf.cell(w=20, h=12, txt=str(row['duration_worker']), border=1)
-                isl_pdf.cell(w=20, h=12, txt=str(row['duration_client']), border=1)
-                isl_pdf.cell(w=20, h=12, txt=str(row['sc_code']), border=1)
-                isl_pdf.cell(w=20, h=12, txt='', border=1)
-                isl_pdf.cell(w=20, h=12, txt='', border=1, ln=1)
+                    isl_pdf.cell(w=30, h=12, txt='', border=1)
+                isl_pdf.cell(w=30, h=12, txt=str(int(row['insyst'])), border=1)
+                name = row['Full Name'].split(',')
+                isl_pdf.multi_cell(w=30, h=6, txt=name[0] + ',\n' + name[1], border=1)
+                isl_pdf.x = isl_pdf.x + 120
+                isl_pdf.y = isl_pdf.y - 12
+                if len(row['event_name']) > 15:
+                    isl_pdf.multi_cell(w=30, h=6,
+                                       txt=row['event_name'][:len(row['event_name']) // 2] + '-\n' +
+                                           row['event_name'][len(row['event_name']) // 2:len(row['event_name'])],
+                                       border=1)
+                    isl_pdf.x = isl_pdf.x + 150
+                    isl_pdf.y = isl_pdf.y - 12
+                else:
+                    isl_pdf.cell(w=30, h=12, txt=row['event_name'], border=1)
+                isl_pdf.cell(w=20, h=12, txt=row['service_date'].strftime('%m/%d/%y'), border=1)
+                if not pd.isna(row['insyst_proc_code']):
+                    isl_pdf.cell(w=15, h=12, txt=str(int(row['insyst_proc_code'])), border=1)
+                else:
+                    isl_pdf.cell(w=15, h=12, txt='', border=1)
+                if not pd.isna(row['cpt_code']):
+                    isl_pdf.cell(w=10, h=12, txt=str(int(row['cpt_code'])), border=1)
+                else:
+                    isl_pdf.cell(w=10, h=12, txt='', border=1)
+                if not pd.isna(row['complexities']):
+                    isl_pdf.cell(w=11, h=12, txt=str(row['complexities']), border=1)
+                else:
+                    isl_pdf.cell(w=11, h=12, txt='', border=1)
+                if pd.isna(row['duration_worker']):
+                    isl_pdf.cell(w=10, h=12, txt='N/A', border=1)
+                else:
+                    isl_pdf.cell(w=10, h=12, txt=str(int(row['duration_worker'])), border=1)
+                if pd.isna(row['duration_client']):
+                    isl_pdf.cell(w=10, h=12, txt='N/A', border=1)
+                else:
+                    isl_pdf.cell(w=10, h=12, txt=str(int(row['duration_client'])), border=1)
+                if pd.isna(row['sc_code']):
+                    isl_pdf.cell(w=15, h=12, txt='N/A', border=1)
+                else:
+                    isl_pdf.cell(w=15, h=12, txt=str(int(row['sc_code'])), border=1)
+                isl_pdf.cell(w=16, h=12, txt='', border=1)
+                isl_pdf.cell(w=10, h=12, txt='', border=1, ln=1)
+                has_row = True
+        if not has_row:
+            isl_pdf.cell(w=30, h=12, txt='', border=1)
+            isl_pdf.cell(w=30, h=12, txt='', border=1)
+            isl_pdf.cell(w=30, h=12, txt='', border=1)
+            isl_pdf.cell(w=30, h=12, txt='', border=1)
+            isl_pdf.cell(w=30, h=12, txt='', border=1)
+            isl_pdf.cell(w=20, h=12, txt='', border=1)
+            isl_pdf.cell(w=15, h=12, txt='', border=1)
+            isl_pdf.cell(w=10, h=12, txt='', border=1)
+            isl_pdf.cell(w=11, h=12, txt='', border=1)
+            isl_pdf.cell(w=10, h=12, txt='', border=1)
+            isl_pdf.cell(w=10, h=12, txt='', border=1)
+            isl_pdf.cell(w=15, h=12, txt='', border=1)
+            isl_pdf.cell(w=16, h=12, txt='', border=1)
+            isl_pdf.cell(w=10, h=12, txt='', border=1, ln=1)
 
         # staff individual events
-        isl_pdf.set_font(family='Arial', size=11)
-        isl_pdf.cell(w=0, h=12, txt='', ln=1)
-        isl_pdf.cell(w=40, h=7, txt='MAA Code', border=1)
-        isl_pdf.cell(w=40, h=7, txt='Time', border=1)
+        isl_pdf.cell(w=30, h=7, txt='MAA Code', border=1)
+        isl_pdf.cell(w=30, h=7, txt='Time', border=1)
         isl_pdf.cell(w=40, h=7, txt='Recipient Code', border=1, ln=1)
         for idx, row in frame.iterrows():
             if pd.isna(row['Full Name']):
-                isl_pdf.cell(w=40, h=7, txt=row['event_name'], border=1)
-                isl_pdf.cell(w=40, h=7, txt=str(row['duration']), border=1)
-                isl_pdf.cell(w=40, h=7, txt=row['actual_date'].strftime('%m/%d/%y %I:%M %p'), border=1, ln=1)
-        isl_pdf.cell(w=40, h=7, txt='Total MAA Time', border=1)
-        isl_pdf.cell(w=40, h=7, txt=str(frame['duration'].sum()), border=1)
+                isl_pdf.cell(w=30, h=7, txt=row['event_name'], border=1)
+                if pd.isna(row['duration']):
+                    isl_pdf.cell(w=30, h=7, txt='N/A', border=1)
+                else:
+                    isl_pdf.cell(w=30, h=7, txt=str(int(row['duration'])), border=1)
+                isl_pdf.cell(w=40, h=7, txt='', border=1, ln=1)
+        isl_pdf.cell(w=30, h=7, txt='Total MAA Time', border=1)
+        maa_time = frame['duration'].sum()
+        isl_pdf.cell(w=30, h=7, txt=str(int(maa_time)), border=1)
 
+        isl_pdf.x = 196
+        isl_pdf.y = vert_col_y
+        isl_pdf.cell(w=20, h=10, txt='SUB-TOTAL: ', ln=2, align='R')
+        isl_pdf.x = 111
+        isl_pdf.multi_cell(w=100, h=5,
+                           txt='Enter other staff time already entered in PSP from\n'
+                               'Group Attendance Roster or Day Svc Log: ',
+                           align='R')
+        isl_pdf.x = 111
+        isl_pdf.multi_cell(w=100, h=5,
+                           txt='Enter your Co-Staff time already entered in PSP\n'
+                               'from Primary Staff Log: ',
+                           align='R')
+        isl_pdf.x = 186
+        isl_pdf.cell(w=30, h=10, txt='Enter MAA Time: ', ln=2, align='R')
+        isl_pdf.cell(w=30, h=10, txt='Total Paid Time: ', ln=2, align='R')
+
+        isl_pdf.x = 216.25
+        isl_pdf.y = vert_col_y
+        subtotal = frame['duration_worker'].sum()
+        isl_pdf.cell(w=9.75, h=10, txt=str(int(subtotal)), border=1, ln=2)
+        isl_pdf.cell(w=9.75, h=10, txt='', border=1, ln=2)
+        isl_pdf.cell(w=9.75, h=10, txt='', border=1, ln=2)
+        isl_pdf.cell(w=9.75, h=10, txt=str(int(maa_time)), border=1, ln=2)
+        isl_pdf.cell(w=9.75, h=10, txt=str(int(maa_time + subtotal)), border=1, ln=1)
+
+        isl_pdf.cell(w=0, h=15, txt='I hereby certify, under penalty of perjury, that the information contained in this'
+                                    ' document is accurate and free from fraudulent claiming.', ln=1)
+
+        isl_pdf.cell(w=150, h=10, txt='Signature:')
+        isl_pdf.cell(w=20, h=10, txt='Date:', ln=1)
+        isl_pdf.cell(w=200, h=10, txt='_______________________________________________________________________________'
+                                      '_________________________________________')
         # TODO change to src/csv/[].pdf
         isl_pdf.output('../pdf/isl_%s.pdf' % staff.split(',')[0].lower())
     return df
@@ -126,10 +210,9 @@ def isl():
     # clients_only = clients_only.rename(columns={'staff_name': 'staff_name_co'})
 
     # to deal with any staff that have both individual events and client events
-    both = pd.concat([staff_only, clients_only], axis=0, ignore_index=True)
-    both.to_csv('../csv/merged.csv')
-    if not both.empty:
-        has_clients(both)
+    merged = pd.concat([staff_only, clients_only], axis=0, ignore_index=True)
+    merged.to_csv('../csv/merged.csv')  # TODO change to src/csv/...
+    create_isls(merged)
 
     print('Done.')
 
@@ -177,12 +260,12 @@ def browser(from_date, to_date):
 
 def main():
     print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
-    print('Beginning ABHS Client Services RPA...')
+    print('Beginning Fremont ISL RPA...')
     from_date = date.today()
     to_date = date.today() + timedelta(days=1)
 
     # browser(from_date, to_date)
-    isl()
+    # isl()
     # upload_folder(folder_path, '1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C')
     # email_body = "Your monthly service entry reports (%s) are ready and available on the ABHS RPA " \
     #              "Reports shared drive: https://drive.google.com/drive/folders/1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C" \
@@ -193,7 +276,7 @@ def main():
     # os.remove('src/csv/report_bruns.csv')
     # os.remove('src/csv/report_moffett.csv')
 
-    print('Successfully finished ABHS Client Services RPA!')
+    print('Successfully finished Fremont ISL RPA!')
 
 
 main()
