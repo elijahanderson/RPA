@@ -339,8 +339,8 @@ def main():
     isl()
     folder_path = '../%s' % from_date.strftime('%m-%d-%Y')
     os.mkdir(folder_path)
-    for filename in os.listdir('../csv'):
-        shutil.move('../csv/%s' % filename, folder_path)
+    for filename in os.listdir('../pdf'):
+        shutil.move('../pdf/%s' % filename, folder_path)
     upload_folder(folder_path, '1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd')
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C" \
