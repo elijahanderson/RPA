@@ -228,7 +228,7 @@ def browser(from_date, to_date):
     options.add_argument("--disable-setuid-sandbox")
     options.add_argument('--verbose')
     options.add_experimental_option('prefs', {
-        'download.default_directory': 'src/csv',
+        'download.default_directory': 'D:\\Programming\\KHIT\\RPA\\src\\csv',
         'download.prompt_for_download': False,
         'download.directory_upgrade': True,
         'safebrowsing_for_trusted_sources_enabled': False,
@@ -237,20 +237,91 @@ def browser(from_date, to_date):
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
     # options.add_argument('--headless')
-    driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver',
+    driver = webdriver.Chrome(executable_path='C:\\Users\\mingus\\AppData\\Local\\chromedriver.exe',
                               chrome_options=options)
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
-    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'src/csv'}}
+    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'D:\\Programming\\KHIT\\RPA\\src\\csv'}}
     driver.execute('send_command', params)
     print('Done.')
 
     driver.get('https://myevolvcofhsxb.netsmartcloud.com/')
 
     # login
-    with open('src/config/login.yml', 'r') as yml:
+    with open('../config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
         usr = login['abhs']
         pwd = login['pwd']
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/div[1]/div[1]/input').send_keys(usr)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/input[4]').click()
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/div[1]/div[2]/div/input')\
+        .send_keys(pwd)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/input[7]').click()
+
+    # navigate to and generate canned staff idv events report (only_staff.csv)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[19]/span').click()
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[1]/ul/li[6]').click()
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[2]/ul/li[9]').click()
+    cd_frame1 = driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[2]/div/div[17]/div/div/div/div/iframe')
+    driver.switch_to.frame(cd_frame1)
+    cd_frame2 = driver.find_element_by_xpath('/html/body/form/div[3]/div/div[2]/iframe[8]')
+    driver.switch_to.frame(cd_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[2]/div/input')\
+        .send_keys('12/28/2020')  # TODO replace with proper date
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[3]/div/input')\
+        .send_keys('12/29/2020')
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[3]/div[2]/div/span').click()
+
+    # switch back to default content for report selection
+    sleep(1)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]')\
+        .click()
+
+    # download and rename report
+    driver.switch_to.frame(cd_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cd_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/ul/li[17]/a').click()
+    sleep(3)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
+    shutil.move(filename, '../csv/only_staff.csv')
+
+    # navigate to and generate custom ISL report (clients_only.csv)
+    driver.switch_to.default_content()
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[19]/span').click()
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[1]/ul/li[2]').click()
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[2]/ul[1]/li[2]').click()
+    cr_frame1 = driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[2]/div/div[17]/div/div/div/div/iframe')
+    driver.switch_to.frame(cr_frame1)
+    cr_frame2 = driver.find_element_by_xpath('/html/body/form/div[3]/div/div[2]/iframe')
+    driver.switch_to.frame(cr_frame2)
+    driver.find_element_by_xpath(
+        '/html/body/form/table/tbody/tr/td/table/tbody/tr/td/div[2]/div[1]/div[2]/table/tbody/tr[2]/td[2]/a').click()
+    driver.implicitly_wait(5)
+    driver.find_element_by_id('grdMain_ObjectName_0').click()
+    driver.switch_to.default_content()
+    driver.switch_to.default_content()
+    driver.switch_to.window(driver.window_handles[1])
+    driver.find_element_by_xpath(
+        '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[2]/span/input[1]')\
+        .send_keys('12/28/2020')  # TODO replace both dates w/ from/to_date
+    driver.find_element_by_xpath(
+        '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[3]/span/input[1]') \
+        .send_keys('12/29/2020')
+    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[2]/td/a[1]/input').click()
+
+    # download and rename the report
+    driver.find_element_by_xpath('/html/body/form/span[5]/span/rdcondelement5/span/a/img').click()
+    sleep(3)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
+    shutil.move(filename, '../csv/clients_only.csv')
 
     print('Exiting chromedriver...', end=' ')
     driver.close()
@@ -264,17 +335,23 @@ def main():
     from_date = date.today()
     to_date = date.today() + timedelta(days=1)
 
-    # browser(from_date, to_date)
-    # isl()
-    # upload_folder(folder_path, '1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C')
-    # email_body = "Your monthly service entry reports (%s) are ready and available on the ABHS RPA " \
-    #              "Reports shared drive: https://drive.google.com/drive/folders/1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C" \
-    #              % folder_path.split('/')[-1]
-    # send_gmail('amanda.bruns@wmabhs.org', 'KHIT Report Notification', email_body)
-    # send_gmail('kelly.moffett-place@wmabhs.org', 'KHIT Report Notification', email_body)
-    #
-    # os.remove('src/csv/report_bruns.csv')
-    # os.remove('src/csv/report_moffett.csv')
+    browser(from_date, to_date)
+    isl()
+    folder_path = '../%s' % from_date.strftime('%m-%d-%Y')
+    os.mkdir(folder_path)
+    for filename in os.listdir('../csv'):
+        shutil.move('../csv/%s' % filename, folder_path)
+    upload_folder(folder_path, '1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd')
+    email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
+                 "Reports shared drive: https://drive.google.com/drive/folders/1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C" \
+                 % from_date.strftime('%m-%d-%Y')
+    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+
+    for filename in os.listdir('../csv'):
+        os.remove(filename)
+    for filename in os.listdir('../pdf'):
+        os.remove(filename)
+    shutil.rmtree(folder_path)
 
     print('Successfully finished Fremont ISL RPA!')
 
