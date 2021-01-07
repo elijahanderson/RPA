@@ -25,7 +25,7 @@ def create_isls(df):
         isl_pdf.cell(w=0, h=5, txt='INDIVIDUAL STAFF LOG', align='C', ln=2)
         isl_pdf.cell(w=0, h=10, txt='REPORTING UNIT:    01EI1 - City of Fremont MMH', align='L', ln=0)
         isl_pdf.cell(w=0, h=10, txt='STAFF NAME:    %s' % staff, align='R', ln=1)
-        isl_pdf.cell(w=0, h=10, txt='DATE OF SERVICES:    %s' % '12/28/2020')  # TODO -- date.today().strftime('%m/%d/%y'))
+        isl_pdf.cell(w=0, h=10, txt='DATE OF SERVICES:    %s' % date.today().strftime('%m/%d/%y'))
         isl_pdf.cell(w=0, h=10, txt='STAFF NO: ________________', align='R', ln=1)
         isl_pdf.multi_cell(w=0, h=5, txt='CONFIDENTIAL INFORMATION\nCalifornia W & I Code Section 5328\n\n', align='C')
         isl_pdf.dashed_line(95, 38, 205, 38)
@@ -189,16 +189,14 @@ def create_isls(df):
         isl_pdf.cell(w=20, h=10, txt='Date:', ln=1)
         isl_pdf.cell(w=200, h=10, txt='_______________________________________________________________________________'
                                       '_________________________________________')
-        # TODO change to src/csv/[].pdf
-        isl_pdf.output('../pdf/isl_%s.pdf' % staff.split(',')[0].lower())
+        isl_pdf.output('src/pdf/isl_%s.pdf' % staff.split(',')[0].lower())
     return df
 
 
 def isl():
     print('Beginning CSV modifications...', end=' ')
-    # TODO change to src/csv/[].csv
-    staff_only = pd.read_csv('../csv/only_staff.csv')
-    clients_only = pd.read_csv('../csv/clients_only.csv')
+    staff_only = pd.read_csv('src/csv/only_staff.csv')
+    clients_only = pd.read_csv('src/csv/clients_only.csv')
 
     staff_only = staff_only[['staff_name', 'event_name', 'actual_date', 'duration']]
     staff_only['actual_date'] = pd.to_datetime(staff_only.actual_date)
@@ -207,11 +205,9 @@ def isl():
 
     clients_only['service_date'] = pd.to_datetime(clients_only.service_date)
     clients_only['staff_name'] = clients_only['staff_name'].str.strip()
-    # clients_only = clients_only.rename(columns={'staff_name': 'staff_name_co'})
 
-    # to deal with any staff that have both individual events and client events
     merged = pd.concat([staff_only, clients_only], axis=0, ignore_index=True)
-    merged.to_csv('../csv/merged.csv')  # TODO change to src/csv/...
+    merged.to_csv('src/csv/merged.csv')
     create_isls(merged)
 
     print('Done.')
@@ -228,7 +224,7 @@ def browser(from_date, to_date):
     options.add_argument("--disable-setuid-sandbox")
     options.add_argument('--verbose')
     options.add_experimental_option('prefs', {
-        'download.default_directory': 'D:\\Programming\\KHIT\\RPA\\src\\csv',
+        'download.default_directory': 'src/csv',
         'download.prompt_for_download': False,
         'download.directory_upgrade': True,
         'safebrowsing_for_trusted_sources_enabled': False,
@@ -236,20 +232,20 @@ def browser(from_date, to_date):
     })
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
-    # options.add_argument('--headless')
-    driver = webdriver.Chrome(executable_path='C:\\Users\\mingus\\AppData\\Local\\chromedriver.exe',
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver',
                               chrome_options=options)
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
-    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'D:\\Programming\\KHIT\\RPA\\src\\csv'}}
+    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'src/csv'}}
     driver.execute('send_command', params)
     print('Done.')
 
     driver.get('https://myevolvcofhsxb.netsmartcloud.com/')
 
     # login
-    with open('../config/login.yml', 'r') as yml:
+    with open('src/config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
-        usr = login['abhs']
+        usr = login['fremont']
         pwd = login['pwd']
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/div[1]/div[1]/input').send_keys(usr)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/input[4]').click()
@@ -267,9 +263,9 @@ def browser(from_date, to_date):
     driver.switch_to.frame(cd_frame2)
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[2]/div/input')\
-        .send_keys('12/28/2020')  # TODO replace with proper date
+        .send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[3]/div/input')\
-        .send_keys('12/29/2020')
+        .send_keys(to_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[3]/div[2]/div/span').click()
 
     # switch back to default content for report selection
@@ -288,8 +284,8 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/ul/li[17]/a').click()
     sleep(3)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
-    shutil.move(filename, '../csv/only_staff.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/only_staff.csv')
 
     # navigate to and generate custom ISL report (clients_only.csv)
     driver.switch_to.default_content()
@@ -311,17 +307,17 @@ def browser(from_date, to_date):
     driver.switch_to.window(driver.window_handles[1])
     driver.find_element_by_xpath(
         '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[2]/span/input[1]')\
-        .send_keys('12/28/2020')  # TODO replace both dates w/ from/to_date
+        .send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath(
         '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[3]/span/input[1]') \
-        .send_keys('12/29/2020')
+        .send_keys(to_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[2]/td/a[1]/input').click()
 
     # download and rename the report
     driver.find_element_by_xpath('/html/body/form/span[5]/span/rdcondelement5/span/a/img').click()
     sleep(3)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
-    shutil.move(filename, '../csv/clients_only.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/clients_only.csv')
 
     print('Exiting chromedriver...', end=' ')
     driver.close()
@@ -337,19 +333,19 @@ def main():
 
     browser(from_date, to_date)
     isl()
-    folder_path = '../%s' % from_date.strftime('%m-%d-%Y')
+    folder_path = 'src/%s' % from_date.strftime('%m-%d-%Y')
     os.mkdir(folder_path)
-    for filename in os.listdir('../pdf'):
-        shutil.move('../pdf/%s' % filename, folder_path)
+    for filename in os.listdir('src/pdf'):
+        shutil.move('src/pdf/%s' % filename, folder_path)
     upload_folder(folder_path, '1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd')
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1h_Mym7ocK5lJ_-a4eZzShQf4DGm6HA8C" \
                  % from_date.strftime('%m-%d-%Y')
     send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
 
-    for filename in os.listdir('../csv'):
+    for filename in os.listdir('src/csv'):
         os.remove(filename)
-    for filename in os.listdir('../pdf'):
+    for filename in os.listdir('src/pdf'):
         os.remove(filename)
     shutil.rmtree(folder_path)
 
