@@ -9,14 +9,13 @@ sys.path[0] = '/home/eanderson/RPA/src'
 from datetime import date, timedelta
 from fpdf import FPDF
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from time import sleep
 
 from infrastructure.drive_upload import upload_folder
 from infrastructure.email import send_gmail
 
 
-def create_isls(df):
+def create_isls(df, from_date):
     for staff, frame in df.sort_values(['Full Name']).groupby('staff_name'):
         isl_pdf = FPDF(orientation='L')
         isl_pdf.add_page()
@@ -25,7 +24,7 @@ def create_isls(df):
         isl_pdf.cell(w=0, h=5, txt='INDIVIDUAL STAFF LOG', align='C', ln=2)
         isl_pdf.cell(w=0, h=10, txt='REPORTING UNIT:    01EI1 - City of Fremont MMH', align='L', ln=0)
         isl_pdf.cell(w=0, h=10, txt='STAFF NAME:    %s' % staff, align='R', ln=1)
-        isl_pdf.cell(w=0, h=10, txt='DATE OF SERVICES:    %s' % date.today().strftime('%m/%d/%y'))
+        isl_pdf.cell(w=0, h=10, txt='DATE OF SERVICES:    %s' % from_date.strftime('%m/%d/%y'))
         isl_pdf.cell(w=0, h=10, txt='STAFF NO: ________________', align='R', ln=1)
         isl_pdf.multi_cell(w=0, h=5, txt='CONFIDENTIAL INFORMATION\nCalifornia W & I Code Section 5328\n\n', align='C')
         isl_pdf.dashed_line(95, 38, 205, 38)
@@ -193,7 +192,7 @@ def create_isls(df):
     return df
 
 
-def isl():
+def isl(from_date):
     print('Beginning CSV modifications...', end=' ')
     staff_only = pd.read_csv('src/csv/only_staff.csv')
     clients_only = pd.read_csv('src/csv/clients_only.csv')
@@ -208,7 +207,7 @@ def isl():
 
     merged = pd.concat([staff_only, clients_only], axis=0, ignore_index=True)
     merged.to_csv('src/csv/merged.csv')
-    create_isls(merged)
+    create_isls(merged, from_date)
 
     print('Done.')
 
@@ -328,11 +327,11 @@ def browser(from_date, to_date):
 def main():
     print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
     print('Beginning Fremont ISL RPA...')
-    from_date = date.today()
-    to_date = date.today() + timedelta(days=1)
+    from_date = date.today() - timedelta(days=1)
+    to_date = date.today()
 
     browser(from_date, to_date)
-    isl()
+    isl(from_date)
     folder_path = 'src/%s' % from_date.strftime('%m-%d-%Y')
     os.mkdir(folder_path)
     for filename in os.listdir('src/pdf'):
@@ -344,21 +343,19 @@ def main():
     send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
-        os.remove(filename)
+        os.remove('src/csv/%s' % filename)
     for filename in os.listdir('src/pdf'):
-        os.remove(filename)
+        os.remove('src/pdf/%s' % filename)
     shutil.rmtree(folder_path)
 
     print('Successfully finished Fremont ISL RPA!')
 
-
-main()
-# try:
-#     main()
-#     send_gmail('eanderson@khitconsulting.com',
-#                'KHIT Report Notification',
-#                'Successfully finished ABHS Client Services RPA!')
-# except Exception as e:
-#     print('System encountered an error running ABHS Service Entry RPA: %s' % e)
-#     email_body = 'System encountered an error running ABHS Service Entry RPA: %s' % e
-#     send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+try:
+    main()
+    send_gmail('eanderson@khitconsulting.com',
+               'KHIT Report Notification',
+               'Successfully finished Fremont ISL RPA!')
+except Exception as e:
+    print('System encountered an error running Fremont ISL RPA: %s' % e)
+    email_body = 'System encountered an error running Fremont ISL RPA: %s' % e
+    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
