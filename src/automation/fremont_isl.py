@@ -6,10 +6,11 @@ import yaml
 
 sys.path[0] = '/home/eanderson/RPA/src'
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from fpdf import FPDF
 from selenium import webdriver
 from time import sleep
+from traceback import print_exc
 
 from infrastructure.drive_upload import upload_folder
 from infrastructure.email import send_gmail
@@ -145,12 +146,20 @@ def create_isls(df, from_date):
         isl_pdf.cell(w=40, h=7, txt='Recipient Code', border=1, ln=1)
         for idx, row in frame.iterrows():
             if pd.isna(row['Full Name']):
-                isl_pdf.cell(w=30, h=7, txt=row['event_name'], border=1)
+                if len(row['event_name']) > 15:
+                    text = row['event_name'][:15] + '...'
+                    isl_pdf.cell(w=30, h=7, txt=text, border=1)
+                else:
+                    isl_pdf.cell(w=30, h=7, txt=row['event_name'], border=1)
                 if pd.isna(row['duration']):
                     isl_pdf.cell(w=30, h=7, txt='N/A', border=1)
                 else:
                     isl_pdf.cell(w=30, h=7, txt=str(int(row['duration'])), border=1)
-                isl_pdf.cell(w=40, h=7, txt='', border=1, ln=1)
+                if pd.isna(row['rec_code']):
+                    isl_pdf.cell(w=40, h=7, txt='', border=1, ln=1)
+                else:
+                    isl_pdf.cell(w=40, h=7, txt=str(row['rec_code']), border=1, ln=1)
+
         isl_pdf.cell(w=30, h=7, txt='Total MAA Time', border=1)
         maa_time = frame['duration'].sum()
         isl_pdf.cell(w=30, h=7, txt=str(int(maa_time)), border=1)
@@ -196,14 +205,17 @@ def isl(from_date):
     print('Beginning CSV modifications...', end=' ')
     staff_only = pd.read_csv('src/csv/only_staff.csv')
     clients_only = pd.read_csv('src/csv/clients_only.csv')
+    recipient_codes = pd.read_csv('src/csv/recipient_codes.csv')
 
-    staff_only = staff_only[['staff_name', 'event_name', 'actual_date', 'duration']]
+    staff_only = staff_only[['staff_name', 'event_name', 'actual_date', 'duration', 'event_log_id']]
     staff_only['actual_date'] = pd.to_datetime(staff_only.actual_date)
     staff_only.drop_duplicates(subset=['actual_date'], inplace=True)
     staff_only['staff_name'] = staff_only['staff_name'].str.strip()
 
     clients_only['service_date'] = pd.to_datetime(clients_only.service_date)
     clients_only['staff_name'] = clients_only['staff_name'].str.strip()
+
+    staff_only = staff_only.merge(recipient_codes, on=['event_log_id'])
 
     merged = pd.concat([staff_only, clients_only], axis=0, ignore_index=True)
     merged.to_csv('src/csv/merged.csv')
@@ -295,15 +307,21 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/div[5]/div/div[2]/ul[1]/li[2]').click()
     cr_frame1 = driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[2]/div/div[17]/div/div/div/div/iframe')
     driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
     cr_frame2 = driver.find_element_by_xpath('/html/body/form/div[3]/div/div[2]/iframe')
     driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
     driver.find_element_by_xpath(
         '/html/body/form/table/tbody/tr/td/table/tbody/tr/td/div[2]/div[1]/div[2]/table/tbody/tr[2]/td[2]/a').click()
     driver.implicitly_wait(5)
+    sleep(3)
     driver.find_element_by_id('grdMain_ObjectName_0').click()
     driver.switch_to.default_content()
+    driver.implicitly_wait(5)
     driver.switch_to.default_content()
+    driver.implicitly_wait(5)
     driver.switch_to.window(driver.window_handles[1])
+    driver.implicitly_wait(5)
     driver.find_element_by_xpath(
         '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[2]/span/input[1]')\
         .send_keys(from_date.strftime('%m/%d/%Y'))
@@ -318,6 +336,37 @@ def browser(from_date, to_date):
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/clients_only.csv')
 
+    # navigate to and generate recipient code report (recipient_codes.csv)
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath(
+            '/html/body/form/table/tbody/tr/td/table/tbody/tr/td/div[2]/div[1]/div[2]/table/tbody/tr[3]/td[2]/a') \
+          .click()
+    driver.implicitly_wait(5)
+    sleep(3)
+    driver.find_element_by_id('grdMain_ObjectName_1').click()
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[2]/td[2]/span/input[1]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[2]/td[3]/span/input[1]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_id('Submit').click()
+    driver.implicitly_wait(5)
+    
+    # download and rename the report
+    driver.find_element_by_xpath('/html/body/form/span[5]/span/rdcondelement4/span/a/img').click()
+    sleep(3)
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/recipient_codes.csv')
+
     print('Exiting chromedriver...', end=' ')
     driver.close()
     driver.quit()
@@ -325,7 +374,7 @@ def browser(from_date, to_date):
 
 
 def main():
-    print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
+    print('------------------------------' + datetime.now().strftime('%Y.%m.%d %H:%M') + '------------------------------')
     print('Beginning Fremont ISL RPA...')
     from_date = date.today() - timedelta(days=1)
     to_date = date.today()
@@ -356,6 +405,7 @@ try:
                'KHIT Report Notification',
                'Successfully finished Fremont ISL RPA!')
 except Exception as e:
-    print('System encountered an error running Fremont ISL RPA: %s' % e)
+    print('System encountered an error running Fremont ISL RPA:\n')
+    print_exc()
     email_body = 'System encountered an error running Fremont ISL RPA: %s' % e
     send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
