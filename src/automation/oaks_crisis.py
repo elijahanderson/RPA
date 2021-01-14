@@ -32,7 +32,7 @@ def browser(from_date, to_date):
     options.add_argument("--disable-setuid-sandbox")
     options.add_argument('--verbose')
     options.add_experimental_option('prefs', {
-        'download.default_directory': '../csv',
+        'download.default_directory': 'D:\\Programming\\KHIT\RPA\\src\\csv',
         'download.prompt_for_download': False,
         'download.directory_upgrade': True,
         'safebrowsing_for_trusted_sources_enabled': False,
@@ -44,7 +44,7 @@ def browser(from_date, to_date):
     driver = webdriver.Chrome(executable_path='C:\\Users\\mingus\\AppData\\Local\\chromedriver.exe',
                               chrome_options=options)
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
-    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': '../csv'}}
+    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'D:\\Programming\\KHIT\RPA\\src\\csv'}}
     driver.execute('send_command', params)
     print('Done.')
 
@@ -61,11 +61,189 @@ def browser(from_date, to_date):
     driver.find_element_by_id('MainContent_MainContent_password').send_keys(pwd)
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
 
-    # download and rename the report
-    driver.find_element_by_xpath('/html/body/form/span[5]/span/rdcondelement4/span/a/img').click()
+    # navigate to RPA folder in custom reports
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[19]/span').click()
+    driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[2]').click()
+    driver.find_element_by_xpath('//*[@id="eb7969e8-1e9c-4c86-8c11-f030bfe97b0f"]/li[2]').click()
+    cr_frame1 = driver.find_element_by_xpath('//*[@id="MainContent_ctl36"]/iframe')
+    driver.switch_to.frame(cr_frame1)
+    cr_frame2 = driver.find_element_by_xpath('//*[@id="formset-target-wrapper-id"]/div[2]/iframe')
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="grdMain_FolderLink_0"]').click()
+
+    # row 17
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="grdMain_ObjectName_0"]').click()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="RP1_1A"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_1B"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="Submit"]').click()
+    # download and rename
+    driver.implicitly_wait(15)
+    driver.find_element_by_xpath('//*[@id="CSV"]').click()
     sleep(3)
-    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
-    shutil.move(filename, 'src/csv/recipient_codes.csv')
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
+    shutil.move(filename, '../csv/r17.csv')
+    # go back to RPA folder
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+
+    # row 21
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="grdMain_ObjectName_1"]').click()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="RP1_1A"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_1B"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="Submit"]').click()
+    # download and rename
+    driver.implicitly_wait(15)
+    driver.find_element_by_xpath('//*[@id="CSV"]').click()
+    sleep(3)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
+    shutil.move(filename, '../csv/r21.csv')
+    # go back to RPA folder
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+
+    # row 27
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="grdMain_ObjectName_2"]').click()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="RP1_2A"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_2B"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="Submit"]').click()
+    # download and rename
+    driver.implicitly_wait(15)
+    driver.find_element_by_xpath('//*[@id="CSV"]').click()
+    sleep(3)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
+    shutil.move(filename, '../csv/r27.csv')
+    # go back to RPA folder
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+
+    # rows 18-20
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="grdMain_ObjectName_3"]').click()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="RP1_1A"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_1B"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_2A"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_2B"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_3"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_4"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="Submit"]').click()
+    # download and rename
+    driver.implicitly_wait(15)
+    driver.find_element_by_xpath('//*[@id="CSV"]').click()
+    while len(driver.window_handles) > 2:
+        sleep(1)
+    sleep(3)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
+    shutil.move(filename, '../csv/r18-20.csv')
+    # go back to RPA folder
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+
+    # rows 28-29
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="grdMain_ObjectName_4"]').click()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="RP1_1A"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_1B"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="Submit"]').click()
+    # download and rename
+    driver.implicitly_wait(15)
+    driver.find_element_by_xpath('//*[@id="CSV"]').click()
+    while len(driver.window_handles) > 2:
+        sleep(1)
+    sleep(3)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
+    shutil.move(filename, '../csv/r28-29.csv')
+    # go back to RPA folder
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+
+    # rows 2-5
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="grdMain_ObjectName_10"]').click()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="RP1_1"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_2"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="Submit"]').click()
+    # download and rename
+    driver.implicitly_wait(15)
+    driver.find_element_by_xpath('//*[@id="CSV"]').click()
+    while len(driver.window_handles) > 2:
+        sleep(1)
+    sleep(3)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
+    shutil.move(filename, '../csv/r2-5.csv')
+    # go back to RPA folder
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
 
     print('Exiting chromedriver...', end=' ')
     driver.close()
