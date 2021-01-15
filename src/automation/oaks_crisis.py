@@ -9,6 +9,7 @@ sys.path[0] = '/home/eanderson/RPA/src'
 from datetime import date, datetime, timedelta
 from fpdf import FPDF
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from time import sleep
 from traceback import print_exc
 
@@ -244,6 +245,111 @@ def browser(from_date, to_date):
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+
+    # navigate to and download assessment results (rows 6-14 and 22-26)
+    driver.find_element_by_xpath('//*[@id="product-header-button-bar-id"]/li[19]/span').click()
+    driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[3]').click()
+    driver.find_element_by_xpath('//*[@id="d66dc6ec-03be-41b2-b808-206523c7e33d"]/li[15]').click()
+    assessment_frame1 = driver.find_element_by_xpath('//*[@id="MainContent_ctl36"]/iframe')
+    driver.switch_to.frame(assessment_frame1)
+    driver.implicitly_wait(5)
+    assessment_frame2 = driver.find_element_by_xpath('//*[@id="formset-target-wrapper-id"]/div[2]/iframe[14]')
+    driver.switch_to.frame(assessment_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="D-749878CE-6477-4939-AA21-40C231E4F63F-input"]')\
+        .send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="D-B28DDAE7-269C-42FA-9C04-53A6EABF445C-input"]')\
+        .send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="rightContentFormId-ctrl-7"]/span').click()
+    # switch back to default content for report selection
+    sleep(1)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[1]/td[1]')\
+        .click()
+    # fill out parameters
+    driver.switch_to.frame(assessment_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(assessment_frame2)
+    driver.implicitly_wait(5)
+    param_frame = driver.find_element_by_xpath('//*[@id="rightContentFormId-ctrl-16"]')
+    driver.switch_to.frame(param_frame)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr/td[2]/div/input')\
+        .send_keys('Assessment/Test' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[4]/div/input')\
+        .send_keys('OI - AIS Part 2')
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[4]/div/input') \
+        .send_keys(Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[2]/td[2]/div/input')\
+        .send_keys('Question' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[2]/td[4]/div/input') \
+        .send_keys('If Crisis Outreach occurred, please specify location of outreach:' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[3]/td[2]/div/input') \
+        .send_keys('Program Assessing' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[3]/td[4]/div/input') \
+        .send_keys('Crisis Screening Services' + Keys.TAB)
+    sleep(1)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(assessment_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(assessment_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="form-toolbar-16"]').click()
+    # download and rename report
+    while len(os.listdir('../csv')) < 7:
+        sleep(1)
+    sleep(5)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
+    shutil.move(filename, '../csv/r6-14.csv')
+
+    # rows 22-26
+    driver.switch_to.frame(param_frame)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[4]/div/input').clear()
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[4]/div/input') \
+        .send_keys('OI - USTF - Emergency / Screening' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[2]/td[4]/div/input').clear()
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[2]/td[4]/div/input') \
+        .send_keys('29. Hospital Discharge from in the Last 30 Days:' + Keys.TAB)
+    sleep(1)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(assessment_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(assessment_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="form-toolbar-16"]').click()
+    # download and rename report
+    dl_wait = True
+    while len(os.listdir('../csv')) < 8 and dl_wait:
+        for file in os.listdir('../csv'):
+            if file.endswith('.crdownload'):
+                dl_wait = True
+        dl_wait = False
+        sleep(1)
+    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
+    shutil.move(filename, '../csv/r22-26.csv')
 
     print('Exiting chromedriver...', end=' ')
     driver.close()
@@ -253,11 +359,11 @@ def browser(from_date, to_date):
 
 def main():
     print(
-        '------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') + '------------------------------'
+        '------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') + ' ------------------------------'
     )
     print('Beginning Oaks Crisis RPA...')
-    from_date = date.today() - timedelta(days=1)
-    to_date = date.today()
+    from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
+    to_date = date.today().replace(day=1)
 
     browser(from_date, to_date)
     # to_excel_sheet()
