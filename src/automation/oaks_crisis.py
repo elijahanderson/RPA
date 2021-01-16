@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 import shutil
 import sys
@@ -7,18 +8,212 @@ import yaml
 sys.path[0] = '/home/eanderson/RPA/src'
 
 from datetime import date, datetime, timedelta
-from fpdf import FPDF
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 from traceback import print_exc
 
-from infrastructure.drive_upload import upload_folder
+from infrastructure.drive_upload import upload_file
 from infrastructure.email import send_gmail
 
 
+def r2_5(curr_date, crisis_src, xl_writer):
+    df = pd.read_csv('src/csv/r2-5.csv')
+    if not df.empty:
+        today = date.today().strftime('%Y-%m-%d')
+        df = df.rename(columns={'Date of Birth': 'dob'})
+        df['dob'] = pd.to_datetime(df.dob)
+        df['dob'] = df['dob'].apply(lambda dob: (pd.to_datetime(today) - dob) / np.timedelta64(1, 'Y'))
+        adults = df[df['dob'] >= 18]
+        minors = df[df['dob'] < 18]
+
+        crisis_src.loc[1, curr_date] = len(adults)
+        crisis_src.loc[2, curr_date] = len(minors)
+        crisis_src.loc[3, curr_date] = len(df)
+
+        # sum each row
+        for idx, row in crisis_src.loc[0:3, :].iterrows():
+            crisis_src.loc[idx, 'SFY 2021 Total'] = row.iloc[4:16].sum()
+
+        crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
+        xl_writer.save()
+
+
+def r6_14(curr_date, crisis_src, xl_writer):
+    df = pd.read_csv('src/csv/r6-14.csv')
+    if not df.empty:
+        # drop all clients less than 18 y/o
+        today = date.today().strftime('%Y-%m-%d')
+        df["dob"] = pd.to_datetime(df.dob)
+        df['dob'] = df['dob'].apply(lambda dob: (pd.to_datetime(today) - dob) / np.timedelta64(1, 'Y'))
+        df = df[df['dob'] >= 18]
+
+        for idx, row in df.iterrows():
+            if 'Correctional' in row['answers_caption']:
+                crisis_src.loc[4, curr_date] = crisis_src.loc[4, curr_date] + 1
+            if 'Nursing' in row['answers_caption']:
+                crisis_src.loc[5, curr_date] = crisis_src.loc[5, curr_date] + 1
+            elif 'ER' in row['answers_caption']:
+                crisis_src.loc[6, curr_date] = crisis_src.loc[6, curr_date] + 1
+            elif 'Inpatient' in row['answers_caption']:
+                crisis_src.loc[7, curr_date] = crisis_src.loc[7, curr_date] + 1
+            elif 'Med Unit' in row['answers_caption']:
+                crisis_src.loc[8, curr_date] = crisis_src.loc[8, curr_date] + 1
+            elif 'Community' in row['answers_caption']:
+                crisis_src.loc[11, curr_date] = crisis_src.loc[11, curr_date] + 1
+
+        # sum the column
+        crisis_src.loc[12, curr_date] = crisis_src.loc[4:11, curr_date].sum()
+
+        # sum each row
+        for idx, row in crisis_src.loc[4:12, :].iterrows():
+            crisis_src.loc[idx, 'SFY 2021 Total'] = row.iloc[4:16].sum()
+
+        crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
+        xl_writer.save()
+
+
+def r17(curr_date, crisis_src, xl_writer):
+    df = pd.read_csv('src/csv/r17.csv')
+    if not df.empty:
+        # drop all clients less than 18 y/o
+        today = date.today().strftime('%Y-%m-%d')
+        df = df.rename(columns={'Date of Birth': 'dob'})
+        df['dob'] = pd.to_datetime(df.dob)
+        df['dob'] = df['dob'].apply(lambda dob: (pd.to_datetime(today) - dob) / np.timedelta64(1, 'Y'))
+        df = df[df['dob'] >= 18]
+
+        # set row 17 to the length of the df
+        crisis_src.loc[15, curr_date] = len(df)
+        # sum the row
+        crisis_src.loc[15, 'SFY 2021 Total'] = crisis_src.iloc[15, 4:16].sum()
+
+        crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
+        xl_writer.save()
+
+
+def r18_20(curr_date, crisis_src, xl_writer):
+    df = pd.read_csv('src/csv/r18-20.csv')
+    if not df.empty:
+        for idx, row in df.iterrows():
+            if row['Row'] == 'Row 18':
+                crisis_src.loc[16, curr_date] = crisis_src.loc[16, curr_date] + 1
+            elif row['Row'] == 'Row 19':
+                crisis_src.loc[17, curr_date] = crisis_src.loc[16, curr_date] + 1
+            elif row['Row'] == 'Row 20':
+                crisis_src.loc[18, curr_date] = crisis_src.loc[18, curr_date] + 1
+
+        # sum each program
+        for idx, row in crisis_src.loc[16:18, :].iterrows():
+            crisis_src.loc[idx, 'SFY 2021 Total'] = row.iloc[4:16].sum()
+
+        crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
+        xl_writer.save()
+
+
+def r21(curr_date, crisis_src, xl_writer):
+    df = pd.read_csv('src/csv/r21.csv')
+    if not df.empty:
+        # set row 21 to the length of the df
+        crisis_src.loc[19, curr_date] = len(df)
+        # sum the row
+        crisis_src.loc[19, 'SFY 2021 Total'] = crisis_src.iloc[19, 4:16].sum()
+
+        crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
+        xl_writer.save()
+
+
+def r22_26(curr_date, crisis_src, xl_writer):
+    df = pd.read_csv('src/csv/r22-26.csv')
+    if not df.empty:
+        # drop all clients less than 18 y/o
+        today = date.today().strftime('%Y-%m-%d')
+        df['dob'] = pd.to_datetime(df.dob)
+        df['dob'] = df['dob'].apply(lambda dob: (pd.to_datetime(today) - dob) / np.timedelta64(1, 'Y'))
+        df = df[int(df['dob']) >= 18]
+        df = df[df['program_name'] == 'Crisis Screening Services']
+
+        # sort the hospitals into their appropriate row
+        for answer in df['answers_caption']:
+            if 'STCF' in answer:
+                crisis_src.loc[20, curr_date] = crisis_src.loc[20, curr_date] + 1
+            if 'Other Involuntary Facility' in answer:
+                crisis_src.loc[21, curr_date] = crisis_src.loc[21, curr_date] + 1
+            if 'County Hospital' in answer:
+                crisis_src.loc[22, curr_date] = crisis_src.loc[22, curr_date] + 1
+            if 'State Hospital' in answer:
+                crisis_src.loc[23, curr_date] = crisis_src.loc[23, curr_date] + 1
+            if 'Voluntary Inpatient Facility' in answer:
+                crisis_src.loc[24, curr_date] = crisis_src.loc[24, curr_date] + 1
+
+        # sum each row
+        for idx, row in crisis_src.loc[20:24, :].iterrows():
+            crisis_src.loc[idx, 'SFY 2021 Total'] = row.iloc[4:16].sum()
+
+        crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
+        xl_writer.save()
+
+
+def r27(curr_date, crisis_src, xl_writer):
+    df = pd.read_csv('src/csv/r27.csv')
+    if not df.empty:
+        # set row 27 to the length of the dataframe
+        crisis_src.loc[25, curr_date] = len(df)
+        # sum the row
+        crisis_src.loc[25, 'SFY 2021 Total'] = crisis_src.iloc[25, 4:16].sum()
+
+        crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
+        xl_writer.save()
+
+
+def r28_29(curr_date, crisis_src, xl_writer):
+    df = pd.read_csv('src/csv/r28-29.csv')
+    if not df.empty:
+        df = df.rename(columns={'Time Between Entry and Adult Intake (Mins)': 'time_diff'})
+
+        for idx, row in df.iterrows():
+            if row['SecureStatus'] == 'Secured':
+                crisis_src.loc[26, curr_date] = crisis_src.loc[26, curr_date] + 1
+            elif row['SecureStatus'] == 'Unsecured':
+                crisis_src.loc[27, curr_date] = crisis_src.loc[27, curr_date] + 1
+
+        # sum each program
+        for idx, row in crisis_src.loc[26:27, :].iterrows():
+            crisis_src.loc[idx, 'SFY 2021 Total'] = row.iloc[4:16].sum()
+
+        crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
+        xl_writer.save()
+
+
 def to_excel_sheet():
-    print('Beginning CSV modifications...', end=' ')
+    print('Beginning export to excel spreadsheet...', end=' ')
+
+    curr_date = (date.today().replace(day=1) - timedelta(days=1)).strftime('%b_%Y').lower()
+    crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
+    xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
+    r2_5(curr_date, crisis_src, xl_writer)
+    crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
+    xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
+    r6_14(curr_date, crisis_src, xl_writer)
+    crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
+    xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
+    r17(curr_date, crisis_src, xl_writer)
+    crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
+    xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
+    r18_20(curr_date, crisis_src, xl_writer)
+    crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
+    xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
+    r21(curr_date, crisis_src, xl_writer)
+    crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
+    xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
+    r22_26(curr_date, crisis_src, xl_writer)
+    crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
+    xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
+    r27(curr_date, crisis_src, xl_writer)
+    crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
+    xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
+    r28_29(curr_date, crisis_src, xl_writer)
+
     print('Done.')
 
 
@@ -33,7 +228,7 @@ def browser(from_date, to_date):
     options.add_argument("--disable-setuid-sandbox")
     options.add_argument('--verbose')
     options.add_experimental_option('prefs', {
-        'download.default_directory': 'D:\\Programming\\KHIT\RPA\\src\\csv',
+        'download.default_directory': 'src/csv',
         'download.prompt_for_download': False,
         'download.directory_upgrade': True,
         'safebrowsing_for_trusted_sources_enabled': False,
@@ -42,17 +237,17 @@ def browser(from_date, to_date):
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
     # options.add_argument('--headless')
-    driver = webdriver.Chrome(executable_path='C:\\Users\\mingus\\AppData\\Local\\chromedriver.exe',
+    driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver',
                               chrome_options=options)
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
-    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'D:\\Programming\\KHIT\RPA\\src\\csv'}}
+    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'src/csv'}}
     driver.execute('send_command', params)
     print('Done.')
 
     driver.get('https://myevolvoaksxb.netsmartcloud.com')
 
     # login
-    with open('../config/login.yml', 'r') as yml:
+    with open('src/config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
         usr = login['oaks']
         pwd = login['pwd']
@@ -90,8 +285,8 @@ def browser(from_date, to_date):
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
     sleep(3)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
-    shutil.move(filename, '../csv/r17.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/r17.csv')
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -118,8 +313,8 @@ def browser(from_date, to_date):
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
     sleep(3)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
-    shutil.move(filename, '../csv/r21.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
+    shutil.move(filename, 'src/csv/r21.csv')
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -146,8 +341,8 @@ def browser(from_date, to_date):
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
     sleep(3)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
-    shutil.move(filename, '../csv/r27.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
+    shutil.move(filename, 'src/csv/r27.csv')
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -180,8 +375,8 @@ def browser(from_date, to_date):
     while len(driver.window_handles) > 2:
         sleep(1)
     sleep(3)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
-    shutil.move(filename, '../csv/r18-20.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
+    shutil.move(filename, 'src/csv/r18-20.csv')
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -210,8 +405,8 @@ def browser(from_date, to_date):
     while len(driver.window_handles) > 2:
         sleep(1)
     sleep(3)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
-    shutil.move(filename, '../csv/r28-29.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
+    shutil.move(filename, 'src/csv/r28-29.csv')
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -240,8 +435,8 @@ def browser(from_date, to_date):
     while len(driver.window_handles) > 2:
         sleep(1)
     sleep(3)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getmtime)
-    shutil.move(filename, '../csv/r2-5.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
+    shutil.move(filename, 'src/csv/r2-5.csv')
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -311,11 +506,11 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('//*[@id="form-toolbar-16"]').click()
     # download and rename report
-    while len(os.listdir('../csv')) < 7:
+    while len(os.listdir('src/csv')) < 7:
         sleep(1)
     sleep(5)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
-    shutil.move(filename, '../csv/r6-14.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/r6-14.csv')
 
     # rows 22-26
     driver.switch_to.frame(param_frame)
@@ -342,14 +537,14 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath('//*[@id="form-toolbar-16"]').click()
     # download and rename report
     dl_wait = True
-    while len(os.listdir('../csv')) < 8 and dl_wait:
-        for file in os.listdir('../csv'):
+    while len(os.listdir('src/csv')) < 8 and dl_wait:
+        for file in os.listdir('src/csv'):
             if file.endswith('.crdownload'):
                 dl_wait = True
         dl_wait = False
         sleep(1)
-    filename = max(['../csv' + '/' + f for f in os.listdir('../csv')], key=os.path.getctime)
-    shutil.move(filename, '../csv/r22-26.csv')
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/r22-26.csv')
 
     print('Exiting chromedriver...', end=' ')
     driver.close()
@@ -359,36 +554,35 @@ def browser(from_date, to_date):
 
 def main():
     print(
-        '------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') + ' ------------------------------'
-    )
+        '------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') +
+        ' ------------------------------ ')
     print('Beginning Oaks Crisis RPA...')
     from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
     to_date = date.today().replace(day=1)
 
     browser(from_date, to_date)
-    # to_excel_sheet()
+    to_excel_sheet()
     file_path = 'src/%s' % from_date.strftime('%m-%d-%Y')
-    # upload_folder(file_path, '1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd')
-    # email_body = "Your monthly crisis report for (%s) is ready and available on the Oaks RPA " \
-    #              "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
-    #              % from_date.strftime('%m-%Y')
-    # send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
+    upload_file(file_path, '14vjvXL3TIVD366xS08LIIxTBgnYsTns8')
+    email_body = "Your monthly crisis report for (%s) is ready and available on the Oaks RPA " \
+                 "Reports shared drive: https://drive.google.com/drive/folders/14vjvXL3TIVD366xS08LIIxTBgnYsTns8" \
+                 % from_date.strftime('%m-%Y')
+    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
 
-    # for filename in os.listdir('src/csv'):
-    #     os.remove('src/csv/%s' % filename)
-    # shutil.rmtree(folder_path)
+    for filename in os.listdir('src/csv'):
+        if not filename.endswith('.xlsx'):
+            os.remove('src/csv/%s' % filename)
 
     print('Successfully finished Oaks Crisis RPA!')
 
 
-main()
-# try:
-#     main()
-#     send_gmail('eanderson@khitconsulting.com',
-#                'KHIT Report Notification',
-#                'Successfully finished Fremont ISL RPA!')
-# except Exception as e:
-#     print('System encountered an error running Fremont ISL RPA:\n')
-#     print_exc()
-#     email_body = 'System encountered an error running Fremont ISL RPA: %s' % e
-#     send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+try:
+    main()
+    send_gmail('eanderson@khitconsulting.com',
+               'KHIT Report Notification',
+               'Successfully finished Oaks Crisis RPA!')
+except Exception as e:
+    print('System encountered an error running Fremont ISL RPA:\n')
+    print_exc()
+    email_body = 'System encountered an error running Fremont ISL RPA: %s' % e
+    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
