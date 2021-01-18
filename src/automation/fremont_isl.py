@@ -9,6 +9,7 @@ sys.path[0] = '/home/eanderson/RPA/src'
 from datetime import date, datetime, timedelta
 from fpdf import FPDF
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from time import sleep
 from traceback import print_exc
 
@@ -288,7 +289,72 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]')\
         .click()
 
+    # enter staff filters
+    driver.switch_to.frame(cd_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cd_frame2)
+    driver.implicitly_wait(5)
+    param_frame = driver.find_element_by_xpath('//*[@id="rightContentFormId-ctrl-24"]')
+    driver.switch_to.frame(param_frame)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[4]/div/input')\
+            .send_keys('Weber, Ihande (Clinical Supervisor)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[2]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[2]/td[4]/div/input')\
+            .send_keys('Manjunath, Sudha (Psychiatrist)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[3]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[3]/td[4]/div/input')\
+            .send_keys('Nelson, Britta (Case Manager)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[4]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[4]/td[4]/div/input')\
+            .send_keys('Kapis, Kelly (Counselor)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[5]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[5]/td[4]/div/input')\
+            .send_keys('Lau, Micheal (Counselor)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[6]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[6]/td[4]/div/input')\
+            .send_keys('Carrell, Ella (Intern)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[7]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[7]/td[4]/div/input')\
+            .send_keys('Guiao, Christine (Intern)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[8]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[8]/td[4]/div/input')\
+            .send_keys('Tran, Lan Anh (Intern)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[9]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[9]/td[4]/div/input')\
+            .send_keys('Awana, Jaime (Intern)' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[10]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
+    sleep(1)
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[10]/td[4]/div/input')\
+            .send_keys('Broyles, Rachel (Intern)' + Keys.TAB)
+    sleep(1)
+
     # download and rename report
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
     driver.switch_to.frame(cd_frame1)
     driver.implicitly_wait(5)
     driver.switch_to.frame(cd_frame2)
@@ -389,9 +455,10 @@ def main():
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
                  % from_date.strftime('%m-%d-%Y')
-    send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
+    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
         os.remove('src/csv/%s' % filename)
