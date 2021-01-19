@@ -4,7 +4,9 @@ google-api-python-client
 google-auth
 google_auth_oauthlib
 httplib2
+numpy
 oauth2
+openpyxl
 pandas
 pyyaml
 selenium

@@ -13,7 +13,6 @@ from time import sleep
 
 from infrastructure.drive_upload import upload_file
 from infrastructure.email import send_gmail
-from infrastructure.last_day_of_month import last_day_of_month
 
 
 def join_datatables():
@@ -41,6 +40,7 @@ def browser():
     from_date = last_day_of_month(date.today()) + timedelta(days=1)
     to_date = last_day_of_month(from_date)) + timedelta(days=1)
     to_date = last_day_of_month(to_date) + timedelta(days=1)
+
     print('Setting up driver...', end=' ')
     # run in headless mode, enable downloads
     options = webdriver.ChromeOptions()
