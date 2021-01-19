@@ -461,7 +461,8 @@ def main():
     send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
-        os.remove('src/csv/%s' % filename)
+        if not filename.endswith('.xlsx'):
+            os.remove('src/csv/%s' % filename)
     for filename in os.listdir('src/pdf'):
         os.remove('src/pdf/%s' % filename)
     shutil.rmtree(folder_path)
