@@ -124,13 +124,13 @@ def r21(curr_date, crisis_src, xl_writer):
 
 
 def r22_26(curr_date, crisis_src, xl_writer):
-    df = pd.read_csv('src/csv/r22-26.csv')
+    df = pd.read_csv('src/csv/r22-26.csv', error_bad_lines=False, engine='python')
     if not df.empty:
         # drop all clients less than 18 y/o
         today = date.today().strftime('%Y-%m-%d')
         df['dob'] = pd.to_datetime(df.dob)
         df['dob'] = df['dob'].apply(lambda dob: (pd.to_datetime(today) - dob) / np.timedelta64(1, 'Y'))
-        df = df[int(df['dob']) >= 18]
+        df = df[df['dob'].astype(int) >= 18]
         df = df[df['program_name'] == 'Crisis Screening Services']
 
         # sort the hospitals into their appropriate row
@@ -188,7 +188,7 @@ def r28_29(curr_date, crisis_src, xl_writer):
 def to_excel_sheet():
     print('Beginning export to excel spreadsheet...', end=' ')
 
-    curr_date = (date.today().replace(day=1) - timedelta(days=1)).strftime('%b_%Y').lower()
+    curr_date = datetime(2020, 9, 1).strftime('%b_%Y').lower()# (date.today().replace(day=1) - timedelta(days=1)).strftime('%b_%Y').lower()
     crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
     xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
     r2_5(curr_date, crisis_src, xl_writer)
@@ -236,7 +236,7 @@ def browser(from_date, to_date):
     })
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver',
                               chrome_options=options)
     driver.command_executor._commands['send_command'] = ('POST', '/session/$sessionId/chromium/send_command')
@@ -246,17 +246,20 @@ def browser(from_date, to_date):
 
     driver.get('https://myevolvoaksxb.netsmartcloud.com')
 
+    print('Beginning browser automation...', end=' ')
+
     # login
     with open('src/config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
         usr = login['oaks']
         pwd = login['pwd']
+
     driver.find_element_by_id('MainContent_MainContent_chkDomain').click()
     driver.find_element_by_id('MainContent_MainContent_userName').send_keys(usr)
     driver.find_element_by_id('MainContent_MainContent_btnNext').click()
     driver.find_element_by_id('MainContent_MainContent_password').send_keys(pwd)
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
-
+    
     # navigate to RPA folder in custom reports
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[19]/span').click()
     driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[2]').click()
@@ -284,7 +287,9 @@ def browser(from_date, to_date):
     # download and rename
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
-    sleep(3)
+    while any([f.endswith('.crdownload') for f in os.listdir('src/csv')]):
+        sleep(1)
+    sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/r17.csv')
     # go back to RPA folder
@@ -312,7 +317,9 @@ def browser(from_date, to_date):
     # download and rename
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
-    sleep(3)
+    while any([f.endswith('.crdownload') for f in os.listdir('src/csv')]):
+        sleep(1)
+    sleep(15)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r21.csv')
     # go back to RPA folder
@@ -323,7 +330,7 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.switch_to.frame(cr_frame2)
     driver.implicitly_wait(5)
-
+    
     # row 27
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('//*[@id="grdMain_ObjectName_2"]').click()
@@ -340,7 +347,9 @@ def browser(from_date, to_date):
     # download and rename
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
-    sleep(3)
+    while any([f.endswith('.crdownload') for f in os.listdir('src/csv')]):
+        sleep(1)
+    sleep(15)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r27.csv')
     # go back to RPA folder
@@ -372,11 +381,12 @@ def browser(from_date, to_date):
     # download and rename
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
-    while len(driver.window_handles) > 2:
+    while any([f.endswith('.crdownload') for f in os.listdir('src/csv')]):
         sleep(1)
-    sleep(3)
+    sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r18-20.csv')
+    sleep(1)
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -402,9 +412,9 @@ def browser(from_date, to_date):
     # download and rename
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
-    while len(driver.window_handles) > 2:
+    while any([f.endswith('.crdownload') for f in os.listdir('src/csv')]):
         sleep(1)
-    sleep(3)
+    sleep(15)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r28-29.csv')
     # go back to RPA folder
@@ -432,9 +442,9 @@ def browser(from_date, to_date):
     # download and rename
     driver.implicitly_wait(15)
     driver.find_element_by_xpath('//*[@id="CSV"]').click()
-    while len(driver.window_handles) > 2:
+    while any([f.endswith('.crdownload') for f in os.listdir('src/csv')]):
         sleep(1)
-    sleep(3)
+    sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r2-5.csv')
     # go back to RPA folder
@@ -506,9 +516,9 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('//*[@id="form-toolbar-16"]').click()
     # download and rename report
-    while len(os.listdir('src/csv')) < 7:
+    while any([f.endswith('.crdownload') for f in os.listdir('src/csv')]):
         sleep(1)
-    sleep(5)
+    sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/r6-14.csv')
 
@@ -536,15 +546,12 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('//*[@id="form-toolbar-16"]').click()
     # download and rename report
-    dl_wait = True
-    while len(os.listdir('src/csv')) < 8 and dl_wait:
-        for file in os.listdir('src/csv'):
-            if file.endswith('.crdownload'):
-                dl_wait = True
-        dl_wait = False
+    while any([f.endswith('.crdownload') for f in os.listdir('src/csv')]):
         sleep(1)
+    sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/r22-26.csv')
+    print('Completed.')
 
     print('Exiting chromedriver...', end=' ')
     driver.close()
@@ -557,13 +564,12 @@ def main():
         '------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') +
         ' ------------------------------ ')
     print('Beginning Oaks Crisis RPA...')
-    from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
-    to_date = date.today().replace(day=1)
+    from_date = datetime(2020, 9, 1) # (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
+    to_date = datetime(2020, 10, 1) # date.today().replace(day=1)
 
     browser(from_date, to_date)
     to_excel_sheet()
-    file_path = 'src/%s' % from_date.strftime('%m-%d-%Y')
-    upload_file(file_path, '14vjvXL3TIVD366xS08LIIxTBgnYsTns8')
+    upload_file('src/csv/crisis_sfy_2021.xlsx', '14vjvXL3TIVD366xS08LIIxTBgnYsTns8')
     email_body = "Your monthly crisis report for (%s) is ready and available on the Oaks RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/14vjvXL3TIVD366xS08LIIxTBgnYsTns8" \
                  % from_date.strftime('%m-%Y')
@@ -582,7 +588,7 @@ try:
                'KHIT Report Notification',
                'Successfully finished Oaks Crisis RPA!')
 except Exception as e:
-    print('System encountered an error running Fremont ISL RPA:\n')
+    print('System encountered an error running Oaks Crisis RPA:\n')
     print_exc()
-    email_body = 'System encountered an error running Fremont ISL RPA: %s' % e
+    email_body = 'System encountered an error running Oaks Crisis RPA: %s' % e
     send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
