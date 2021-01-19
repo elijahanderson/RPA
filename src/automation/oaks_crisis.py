@@ -188,7 +188,7 @@ def r28_29(curr_date, crisis_src, xl_writer):
 def to_excel_sheet():
     print('Beginning export to excel spreadsheet...', end=' ')
 
-    curr_date = datetime(2020, 9, 1).strftime('%b_%Y').lower()# (date.today().replace(day=1) - timedelta(days=1)).strftime('%b_%Y').lower()
+    curr_date = (date.today().replace(day=1) - timedelta(days=1)).strftime('%b_%Y').lower()
     crisis_src = pd.read_excel('src/csv/crisis_sfy_2021.xlsx', engine='openpyxl')
     xl_writer = pd.ExcelWriter('src/csv/crisis_sfy_2021.xlsx', engine='xlsxwriter')
     r2_5(curr_date, crisis_src, xl_writer)
@@ -564,16 +564,18 @@ def main():
         '------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') +
         ' ------------------------------ ')
     print('Beginning Oaks Crisis RPA...')
-    from_date = datetime(2020, 9, 1) # (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
-    to_date = datetime(2020, 10, 1) # date.today().replace(day=1)
+    from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
+    to_date = date.today().replace(day=1)
 
     browser(from_date, to_date)
     to_excel_sheet()
     upload_file('src/csv/crisis_sfy_2021.xlsx', '14vjvXL3TIVD366xS08LIIxTBgnYsTns8')
     email_body = "Your monthly crisis report for (%s) is ready and available on the Oaks RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/14vjvXL3TIVD366xS08LIIxTBgnYsTns8" \
-                 % from_date.strftime('%m-%Y')
-    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+                 "\nSherri, can you review this spreadsheet to make sure all the numbers are accurate? Thanks!" \
+                 % from_date.strftime('%b-%Y')
+    send_gmail('Sherri.Dunn@oaksintcare.org', 'KHIT Report Notification', email_body)
+    send_gmail('Krystle.Jarzyk@oaksintcare.org', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
         if not filename.endswith('.xlsx'):
