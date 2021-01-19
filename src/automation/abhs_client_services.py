@@ -213,10 +213,10 @@ def browser(from_date, to_date):
 
 
 def main():
-    print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
+    print('------------------------------ ' + date.today().strftime('%Y.%m.%d' '%H:%M') + ' ------------------------------')
     print('Beginning ABHS Client Services RPA...')
     from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
-    to_date = date.today().replace(day=1) - timedelta(days=1)
+    to_date = date.today().replace(day=1)
 
     browser(from_date, to_date)
     folder_path = fancify(from_date)

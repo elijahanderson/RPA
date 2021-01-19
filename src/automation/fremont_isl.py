@@ -440,7 +440,7 @@ def browser(from_date, to_date):
 
 
 def main():
-    print('------------------------------' + datetime.now().strftime('%Y.%m.%d %H:%M') + '------------------------------')
+    print('------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') + ' ------------------------------')
     print('Beginning Fremont ISL RPA...')
     from_date = date.today() - timedelta(days=1)
     to_date = date.today()

@@ -44,9 +44,9 @@ def join_datatables():
 
 
 def browser():
-    from_date = date.today().replace(day=28) + timedelta(days=4)
-    to_date = from_date.replace(day=28) + timedelta(days=4)
-    to_date = last_day_of_month(to_date)
+    from_date = last_day_of_month(date.today()) + timedelta(days=1)
+    to_date = last_day_of_month(from_date) + timedelta(days=1)
+    to_date = last_day_of_month(to_date) + timedelta(days=1)
     print('Setting up driver...', end=' ')
     # run in headless mode, enable downloads
     options = webdriver.ChromeOptions()
@@ -194,7 +194,7 @@ def browser():
 
 
 def main():
-    print('------------------------------' + date.today().strftime('%Y.%m.%d') + '------------------------------')
+    print('------------------------------ ' + date.today().strftime('%Y.%m.%d %H:%M') + ' ------------------------------')
     print('Beginning Appleseed ISP Due Dates RPA...')
     browser()
     merged_filename = join_datatables()
