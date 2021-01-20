@@ -27,7 +27,7 @@ def create_isls(df, from_date):
         isl_pdf.cell(w=0, h=10, txt='REPORTING UNIT:    01EI1 - City of Fremont MMH', align='L', ln=0)
         isl_pdf.cell(w=0, h=10, txt='STAFF NAME:    %s' % staff, align='R', ln=1)
         isl_pdf.cell(w=0, h=10, txt='DATE OF SERVICES:    %s' % from_date.strftime('%m/%d/%y'))
-        isl_pdf.cell(w=0, h=10, txt='STAFF NO: ________________', align='R', ln=1)
+        isl_pdf.cell(w=0, h=10, txt='STAFF NO:    %s' % str(int(frame['id_number'].iloc[0])), align='R', ln=1)
         isl_pdf.multi_cell(w=0, h=5, txt='CONFIDENTIAL INFORMATION\nCalifornia W & I Code Section 5328\n\n', align='C')
         isl_pdf.dashed_line(95, 38, 205, 38)
         isl_pdf.dashed_line(95, 49, 205, 49)
@@ -60,7 +60,7 @@ def create_isls(df, from_date):
         isl_pdf.multi_cell(w=10, h=6, txt='Total\nTime', border=1)
         isl_pdf.x = isl_pdf.x + 216
         isl_pdf.y = isl_pdf.y - 12
-        vert_col_y = isl_pdf.y + 24
+        vert_col_y = isl_pdf.y + 12
         isl_pdf.multi_cell(w=10, h=6, txt='FTF\nTime', border=1)
         isl_pdf.x = isl_pdf.x + 226
         isl_pdf.y = isl_pdf.y - 12
@@ -75,6 +75,7 @@ def create_isls(df, from_date):
         has_row = False
         for idx, row in frame.iterrows():
             if not pd.isna(row['Full Name']):
+                vert_col_y = vert_col_y + 12
                 if row['vendor_name'] == 'Medi-Cal':
                     isl_pdf.cell(w=30, h=12, txt=row['policy_num'], border=1)
                 else:
@@ -99,7 +100,7 @@ def create_isls(df, from_date):
                     isl_pdf.cell(w=30, h=12, txt=row['event_name'], border=1)
                 isl_pdf.cell(w=20, h=12, txt=row['service_date'].strftime('%m/%d/%y'), border=1)
                 if not pd.isna(row['insyst_proc_code']):
-                    isl_pdf.cell(w=15, h=12, txt=str(int(row['insyst_proc_code'])), border=1)
+                    isl_pdf.cell(w=15, h=12, txt=str(row['insyst_proc_code']), border=1)
                 else:
                     isl_pdf.cell(w=15, h=12, txt='', border=1)
                 if not pd.isna(row['cpt_code']):
@@ -126,6 +127,7 @@ def create_isls(df, from_date):
                 isl_pdf.cell(w=10, h=12, txt='', border=1, ln=1)
                 has_row = True
         if not has_row:
+            vert_col_y = vert_col_y + 12 
             isl_pdf.cell(w=30, h=12, txt='', border=1)
             isl_pdf.cell(w=30, h=12, txt='', border=1)
             isl_pdf.cell(w=30, h=12, txt='', border=1)
@@ -207,18 +209,23 @@ def isl(from_date):
     staff_only = pd.read_csv('src/csv/only_staff.csv')
     clients_only = pd.read_csv('src/csv/clients_only.csv')
     recipient_codes = pd.read_csv('src/csv/recipient_codes.csv')
+    staff_ids = pd.read_csv('src/csv/staff_ids.csv')
 
-    staff_only = staff_only[['staff_name', 'event_name', 'actual_date', 'duration', 'event_log_id']]
+    staff_only = staff_only[['staff_name', 'event_name', 'actual_date', 'duration', 'event_log_id', 'staff_id']]
     staff_only['actual_date'] = pd.to_datetime(staff_only.actual_date)
     staff_only.drop_duplicates(subset=['actual_date'], inplace=True)
     staff_only['staff_name'] = staff_only['staff_name'].str.strip()
+    needed_staff = ['Weber, Ihande', 'Manjunath, Sudha', 'Nelson, Britta', 'Kapis, Kelly', 'Lau, Michael', 
+                    'Guiao, Christine', 'Carrell, Ella', 'Tran, Lan Anh', 'Awana, Jaime', 'Broyles, Rachel'] 
+    staff_only = staff_only[staff_only['staff_name'].isin(needed_staff)]
 
     clients_only['service_date'] = pd.to_datetime(clients_only.service_date)
     clients_only['staff_name'] = clients_only['staff_name'].str.strip()
-
+    
     staff_only = staff_only.merge(recipient_codes, on=['event_log_id'])
-
+        
     merged = pd.concat([staff_only, clients_only], axis=0, ignore_index=True)
+    merged = merged.merge(staff_ids, on=['staff_id'])
     merged.to_csv('src/csv/merged.csv')
     create_isls(merged, from_date)
 
@@ -289,71 +296,7 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]')\
         .click()
 
-    # enter staff filters
-    driver.switch_to.frame(cd_frame1)
-    driver.implicitly_wait(5)
-    driver.switch_to.frame(cd_frame2)
-    driver.implicitly_wait(5)
-    param_frame = driver.find_element_by_xpath('//*[@id="rightContentFormId-ctrl-24"]')
-    driver.switch_to.frame(param_frame)
-    driver.implicitly_wait(5)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[4]/div/input')\
-            .send_keys('Weber, Ihande (Clinical Supervisor)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[2]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[2]/td[4]/div/input')\
-            .send_keys('Manjunath, Sudha (Psychiatrist)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[3]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[3]/td[4]/div/input')\
-            .send_keys('Nelson, Britta (Case Manager)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[4]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[4]/td[4]/div/input')\
-            .send_keys('Kapis, Kelly (Counselor)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[5]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[5]/td[4]/div/input')\
-            .send_keys('Lau, Micheal (Counselor)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[6]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[6]/td[4]/div/input')\
-            .send_keys('Carrell, Ella (Intern)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[7]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[7]/td[4]/div/input')\
-            .send_keys('Guiao, Christine (Intern)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[8]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[8]/td[4]/div/input')\
-            .send_keys('Tran, Lan Anh (Intern)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[9]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[9]/td[4]/div/input')\
-            .send_keys('Awana, Jaime (Intern)' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[10]/td[2]/div/input').send_keys('Staff' + Keys.TAB)
-    sleep(1)
-    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[10]/td[4]/div/input')\
-            .send_keys('Broyles, Rachel (Intern)' + Keys.TAB)
-    sleep(1)
-
-    # download and rename report
-    driver.switch_to.default_content()
-    driver.implicitly_wait(5)
-    driver.switch_to.default_content()
-    driver.implicitly_wait(5)
-    driver.switch_to.default_content()
+    # download and rename the report
     driver.implicitly_wait(5)
     driver.switch_to.frame(cd_frame1)
     driver.implicitly_wait(5)
@@ -410,10 +353,6 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.switch_to.frame(cr_frame2)
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath(
-            '/html/body/form/table/tbody/tr/td/table/tbody/tr/td/div[2]/div[1]/div[2]/table/tbody/tr[3]/td[2]/a') \
-          .click()
-    driver.implicitly_wait(5)
     sleep(3)
     driver.find_element_by_id('grdMain_ObjectName_1').click()
     driver.switch_to.default_content()
@@ -433,6 +372,28 @@ def browser(from_date, to_date):
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/recipient_codes.csv')
 
+    # navigate to and generate staff IDs report (staff_ids.csv)
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+    sleep(3)
+    driver.find_element_by_id('grdMain_ObjectName_2').click()
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(5)
+    driver.find_element_by_id('CSV').click()
+    driver.implicitly_wait(5)
+    sleep(3)
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/staff_ids.csv')
+
     print('Exiting chromedriver...', end=' ')
     driver.close()
     driver.quit()
@@ -442,8 +403,8 @@ def browser(from_date, to_date):
 def main():
     print('------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') + ' ------------------------------')
     print('Beginning Fremont ISL RPA...')
-    from_date = date.today() - timedelta(days=1)
-    to_date = date.today()
+    from_date = datetime(2020, 12, 20) # date.today() - timedelta(days=1)
+    to_date = datetime(2021, 1, 20) # date.today()
 
     browser(from_date, to_date)
     isl(from_date)
