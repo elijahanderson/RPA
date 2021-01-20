@@ -416,10 +416,9 @@ def main():
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
                  % from_date.strftime('%m-%d-%Y')
-    # send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
-    # send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
-    # send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
+    send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
+    send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
+    send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
         os.remove('src/csv/%s' % filename)
