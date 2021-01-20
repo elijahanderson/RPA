@@ -18,7 +18,9 @@ from infrastructure.email import send_gmail
 
 
 def create_isls(df, from_date):
-    for staff, frame in df.sort_values(['Full Name']).groupby('staff_name'):
+    print(df.sort_values(['Full Name']).groupby(['staff_name', 'program_modifier']))
+    for staff, frame in df.sort_values(['Full Name']).groupby(['staff_name', 'program_modifier']):
+        print(frame)
         isl_pdf = FPDF(orientation='L')
         isl_pdf.add_page()
         isl_pdf.set_font(family='Arial', size=11)
@@ -114,11 +116,15 @@ def create_isls(df, from_date):
                 if pd.isna(row['duration_worker']):
                     isl_pdf.cell(w=10, h=12, txt='N/A', border=1)
                 else:
-                    isl_pdf.cell(w=10, h=12, txt='{:02d}:{:02d}'.format(*divmod(int(row['duration_worker']), 60)), border=1)
+                    isl_pdf.cell(w=10, h=12,
+                                 txt='{:02d}:{:02d}'.format(*divmod(int(row['duration_worker']), 60)),
+                                 border=1)
                 if pd.isna(row['duration_client']):
                     isl_pdf.cell(w=10, h=12, txt='N/A', border=1)
                 else:
-                    isl_pdf.cell(w=10, h=12, txt='{:02d}:{:02d}'.format(*divmod(int(row['duration_client']), 60)), border=1)
+                    isl_pdf.cell(w=10, h=12,
+                                 txt='{:02d}:{:02d}'.format(*divmod(int(row['duration_client']), 60)),
+                                 border=1)
                 if pd.isna(row['sc_code']):
                     isl_pdf.cell(w=15, h=12, txt='N/A', border=1)
                 else:
@@ -127,7 +133,7 @@ def create_isls(df, from_date):
                 isl_pdf.cell(w=10, h=12, txt='', border=1, ln=1)
                 has_row = True
         if not has_row:
-            vert_col_y = vert_col_y + 12 
+            vert_col_y = vert_col_y + 12
             isl_pdf.cell(w=30, h=12, txt='', border=1)
             isl_pdf.cell(w=30, h=12, txt='', border=1)
             isl_pdf.cell(w=30, h=12, txt='', border=1)
@@ -200,7 +206,8 @@ def create_isls(df, from_date):
         isl_pdf.cell(w=20, h=10, txt='Date:', ln=1)
         isl_pdf.cell(w=200, h=10, txt='_______________________________________________________________________________'
                                       '_________________________________________')
-        isl_pdf.output('src/pdf/isl_%s_%s_%s.pdf' % (staff.split(',')[0].lower(), staff.split(',')[1].lower(), from_date.strftime('%Y-%m-%d')))
+        isl_pdf.output('src/pdf/isl_%s_%s_%s.pdf' %
+                       (staff.split(',')[0].lower(), staff.split(',')[1].lower(), from_date.strftime('%Y-%m-%d')))
     return df
 
 
@@ -215,15 +222,15 @@ def isl(from_date):
     staff_only['actual_date'] = pd.to_datetime(staff_only.actual_date)
     staff_only.drop_duplicates(subset=['actual_date'], inplace=True)
     staff_only['staff_name'] = staff_only['staff_name'].str.strip()
-    needed_staff = ['Weber, Ihande', 'Manjunath, Sudha', 'Nelson, Britta', 'Kapis, Kelly', 'Lau, Michael', 
-                    'Guiao, Christine', 'Carrell, Ella', 'Tran, Lan Anh', 'Awana, Jaime', 'Broyles, Rachel'] 
+    needed_staff = ['Weber, Ihande', 'Manjunath, Sudha', 'Nelson, Britta', 'Kapis, Kelly', 'Lau, Michael',
+                    'Guiao, Christine', 'Carrell, Ella', 'Tran, Lan Anh', 'Awana, Jaime', 'Broyles, Rachel']
     staff_only = staff_only[staff_only['staff_name'].isin(needed_staff)]
 
     clients_only['service_date'] = pd.to_datetime(clients_only.service_date)
     clients_only['staff_name'] = clients_only['staff_name'].str.strip()
-    
+
     staff_only = staff_only.merge(recipient_codes, on=['event_log_id'])
-        
+
     merged = pd.concat([staff_only, clients_only], axis=0, ignore_index=True)
     merged = merged.merge(staff_ids, on=['staff_id'])
     merged.to_csv('src/csv/merged.csv')
@@ -268,7 +275,7 @@ def browser(from_date, to_date):
         pwd = login['pwd']
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/div[1]/div[1]/input').send_keys(usr)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/input[4]').click()
-    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/div[1]/div[2]/div/input')\
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/div[1]/div[2]/div/input') \
         .send_keys(pwd)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div/div/div[1]/div/input[7]').click()
 
@@ -281,9 +288,9 @@ def browser(from_date, to_date):
     cd_frame2 = driver.find_element_by_xpath('/html/body/form/div[3]/div/div[2]/iframe[8]')
     driver.switch_to.frame(cd_frame2)
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[2]/div/input')\
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[2]/div/input') \
         .send_keys(from_date.strftime('%m/%d/%Y'))
-    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[3]/div/input')\
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[3]/div/input') \
         .send_keys(to_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[3]/div[2]/div/span').click()
 
@@ -293,7 +300,7 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.switch_to.default_content()
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]')\
+    driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]') \
         .click()
 
     # download and rename the report
@@ -332,7 +339,7 @@ def browser(from_date, to_date):
     driver.switch_to.window(driver.window_handles[1])
     driver.implicitly_wait(5)
     driver.find_element_by_xpath(
-        '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[2]/span/input[1]')\
+        '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[2]/span/input[1]') \
         .send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath(
         '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[3]/span/input[1]') \
@@ -361,11 +368,13 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.switch_to.window(driver.window_handles[-1])
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[2]/td[2]/span/input[1]').send_keys(from_date.strftime('%m/%d/%Y'))
-    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[2]/td[3]/span/input[1]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[2]/td[2]/'
+                                 'span/input[1]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[2]/td[3]/'
+                                 'span/input[1]').send_keys(to_date.strftime('%m/%d/%Y'))
     driver.find_element_by_id('Submit').click()
     driver.implicitly_wait(5)
-    
+
     # download and rename the report
     driver.find_element_by_xpath('/html/body/form/span[5]/span/rdcondelement4/span/a/img').click()
     sleep(3)
@@ -401,10 +410,11 @@ def browser(from_date, to_date):
 
 
 def main():
-    print('------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') + ' ------------------------------')
+    print('------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') +
+          ' ------------------------------')
     print('Beginning Fremont ISL RPA...')
-    from_date = datetime(2020, 12, 20) #date.today() - timedelta(days=1)
-    to_date = datetime(2021, 1, 20) #date.today()
+    from_date = datetime(2020, 12, 20)  # date.today() - timedelta(days=1)
+    to_date = datetime(2021, 1, 20)  # date.today()
 
     browser(from_date, to_date)
     isl(from_date)
@@ -416,9 +426,9 @@ def main():
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
                  % from_date.strftime('%m-%d-%Y')
-    #send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
-    #send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
-    #send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
         os.remove('src/csv/%s' % filename)
@@ -427,6 +437,7 @@ def main():
     shutil.rmtree(folder_path)
 
     print('Successfully finished Fremont ISL RPA!')
+
 
 try:
     main()
