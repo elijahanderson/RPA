@@ -200,7 +200,7 @@ def create_isls(df, from_date):
         isl_pdf.cell(w=20, h=10, txt='Date:', ln=1)
         isl_pdf.cell(w=200, h=10, txt='_______________________________________________________________________________'
                                       '_________________________________________')
-        isl_pdf.output('src/pdf/isl_%s.pdf' % staff.split(',')[0].lower())
+        isl_pdf.output('src/pdf/isl_%s_%s_%s.pdf' % (staff.split(',')[0].lower(), staff.split(',')[1].lower(), from_date.strftime('%Y-%m-%d')))
     return df
 
 
