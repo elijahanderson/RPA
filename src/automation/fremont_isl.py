@@ -114,11 +114,11 @@ def create_isls(df, from_date):
                 if pd.isna(row['duration_worker']):
                     isl_pdf.cell(w=10, h=12, txt='N/A', border=1)
                 else:
-                    isl_pdf.cell(w=10, h=12, txt=str(int(row['duration_worker'])), border=1)
+                    isl_pdf.cell(w=10, h=12, txt='{:02d}:{:02d}'.format(*divmod(int(row['duration_worker']), 60)), border=1)
                 if pd.isna(row['duration_client']):
                     isl_pdf.cell(w=10, h=12, txt='N/A', border=1)
                 else:
-                    isl_pdf.cell(w=10, h=12, txt=str(int(row['duration_client'])), border=1)
+                    isl_pdf.cell(w=10, h=12, txt='{:02d}:{:02d}'.format(*divmod(int(row['duration_client']), 60)), border=1)
                 if pd.isna(row['sc_code']):
                     isl_pdf.cell(w=15, h=12, txt='N/A', border=1)
                 else:
@@ -157,7 +157,7 @@ def create_isls(df, from_date):
                 if pd.isna(row['duration']):
                     isl_pdf.cell(w=30, h=7, txt='N/A', border=1)
                 else:
-                    isl_pdf.cell(w=30, h=7, txt=str(int(row['duration'])), border=1)
+                    isl_pdf.cell(w=30, h=7, txt='{:02d}:{:02d}'.format(*divmod(int(row['duration']), 60)), border=1)
                 if pd.isna(row['rec_code']):
                     isl_pdf.cell(w=40, h=7, txt='', border=1, ln=1)
                 else:
@@ -165,7 +165,7 @@ def create_isls(df, from_date):
 
         isl_pdf.cell(w=30, h=7, txt='Total MAA Time', border=1)
         maa_time = frame['duration'].sum()
-        isl_pdf.cell(w=30, h=7, txt=str(int(maa_time)), border=1)
+        isl_pdf.cell(w=30, h=7, txt='{:02d}:{:02d}'.format(*divmod(int(maa_time), 60)), border=1)
 
         isl_pdf.x = 196
         isl_pdf.y = vert_col_y
@@ -187,11 +187,11 @@ def create_isls(df, from_date):
         isl_pdf.x = 216.25
         isl_pdf.y = vert_col_y
         subtotal = frame['duration_worker'].sum()
-        isl_pdf.cell(w=9.75, h=10, txt=str(int(subtotal)), border=1, ln=2)
+        isl_pdf.cell(w=9.75, h=10, txt='{:02d}:{:02d}'.format(*divmod(int(subtotal), 60)), border=1, ln=2)
         isl_pdf.cell(w=9.75, h=10, txt='', border=1, ln=2)
         isl_pdf.cell(w=9.75, h=10, txt='', border=1, ln=2)
-        isl_pdf.cell(w=9.75, h=10, txt=str(int(maa_time)), border=1, ln=2)
-        isl_pdf.cell(w=9.75, h=10, txt=str(int(maa_time + subtotal)), border=1, ln=1)
+        isl_pdf.cell(w=9.75, h=10, txt='{:02d}:{:02d}'.format(*divmod(int(maa_time), 60)), border=1, ln=2)
+        isl_pdf.cell(w=9.75, h=10, txt='{:02d}:{:02d}'.format(*divmod(int(maa_time + subtotal), 60)), border=1, ln=1)
 
         isl_pdf.cell(w=0, h=15, txt='I hereby certify, under penalty of perjury, that the information contained in this'
                                     ' document is accurate and free from fraudulent claiming.', ln=1)
@@ -403,8 +403,8 @@ def browser(from_date, to_date):
 def main():
     print('------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') + ' ------------------------------')
     print('Beginning Fremont ISL RPA...')
-    from_date = datetime(2020, 12, 20) # date.today() - timedelta(days=1)
-    to_date = datetime(2021, 1, 20) # date.today()
+    from_date = datetime(2020, 12, 20) #date.today() - timedelta(days=1)
+    to_date = datetime(2021, 1, 20) #date.today()
 
     browser(from_date, to_date)
     isl(from_date)
@@ -416,9 +416,9 @@ def main():
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
                  % from_date.strftime('%m-%d-%Y')
-    send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
+    #send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
+    #send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
+    #send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
         os.remove('src/csv/%s' % filename)
