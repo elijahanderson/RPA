@@ -447,12 +447,9 @@ def browser(from_date, to_date):
     print('Process killed.')
 
 
-def main():
-    print('------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') +
-          ' ------------------------------')
-    print('Beginning Fremont ISL RPA...')
-    from_date = date.today() - timedelta(days=5)
-    to_date = date.today(days=4)
+def fremont_isl(from_date):
+    print('Running ISL report for ' + from_date.strftime('%Y.%m.%d'))
+    to_date = from_date + timedelta(days=1)
 
     browser(from_date, to_date)
     isl(from_date)
@@ -464,9 +461,9 @@ def main():
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
                  % from_date.strftime('%m-%d-%Y')
-    send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
+    # send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
         os.remove('src/csv/%s' % filename)
@@ -474,6 +471,38 @@ def main():
         os.remove('src/pdf/%s' % filename)
     shutil.rmtree(folder_path)
 
+
+def main():
+    print('------------------------------ ' + datetime.now().strftime('%Y.%m.%d %H:%M') +
+          ' ------------------------------')
+    print('Beginning Fremont ISL RPA...')
+
+    # only run automation for workdays
+    from_date = datetime(2021, 1, 2) - timedelta(days=5) # date.today() - timedelta(days=5)
+    if from_date.weekday() < 5:
+        today = int(datetime(2021, 1, 2).strftime('%d'))# int(date.today().strftime('%d'))
+        f = open('src/txt/most_recent_from_date.txt', 'r+')
+        # if second workday of month, run automation for the rest of the previous month
+        if 1 < today <= 7:
+            from_date = pd.to_datetime(f.read()) + timedelta(days=1)
+            from_day = int(from_date.strftime('%d'))
+            prev_month_last_day = int((date.today().replace(day=1) - timedelta(days=1)).strftime('%d'))
+            print(prev_month_last_day)
+            for i in range(from_day, prev_month_last_day+1):
+                print(from_date.strftime('%Y-%m-%d'))
+                if from_date.weekday() < 5 and from_day > (prev_month_last_day - 7):
+                    fremont_isl(from_date)
+                    f.truncate(0)
+                    f.write(from_date.strftime('%Y-%m-%d').strip())
+                from_date = from_date + timedelta(days=1)
+        else:
+            fremont_isl(from_date)
+            f.truncate(0)
+            f.write(from_date.strftime('%Y-%m-%d').strip())
+    else:
+        print('From date is on a weekend.')
+
+    
     print('Successfully finished Fremont ISL RPA!')
 
 
