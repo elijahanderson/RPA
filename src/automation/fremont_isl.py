@@ -47,32 +47,32 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
     isl_pdf.x = isl_pdf.x + 60
     isl_pdf.y = isl_pdf.y - 12
     isl_pdf.cell(w=30, h=12, txt='INSYST #', border=1)
-    isl_pdf.cell(w=30, h=12, txt='Client Name', border=1)
-    isl_pdf.multi_cell(w=30, h=6, txt='County\nProcedure', border=1)
-    isl_pdf.x = isl_pdf.x + 150
-    isl_pdf.y = isl_pdf.y - 12
-    isl_pdf.multi_cell(w=20, h=6, txt='Proc#\nDate', border=1)
+    isl_pdf.cell(w=40, h=12, txt='Client Name', border=1)
+    isl_pdf.multi_cell(w=40, h=6, txt='County\nProcedure', border=1)
     isl_pdf.x = isl_pdf.x + 170
     isl_pdf.y = isl_pdf.y - 12
-    isl_pdf.multi_cell(w=15, h=4, txt='InSyst\nProc.\nCode', border=1)
-    isl_pdf.x = isl_pdf.x + 185
+    isl_pdf.multi_cell(w=20, h=6, txt='Proc#\nDate', border=1)
+    isl_pdf.x = isl_pdf.x + 190
+    isl_pdf.y = isl_pdf.y - 12
+    isl_pdf.multi_cell(w=12, h=4, txt='InSyst\nProc.\nCode', border=1)
+    isl_pdf.x = isl_pdf.x + 202
     isl_pdf.y = isl_pdf.y - 12
     isl_pdf.multi_cell(w=10, h=6, txt='CPT\nCode', border=1)
-    isl_pdf.x = isl_pdf.x + 195
+    isl_pdf.x = isl_pdf.x + 212
     isl_pdf.y = isl_pdf.y - 12
     isl_pdf.cell(w=11, h=12, txt='Compl.', border=1)
     isl_pdf.multi_cell(w=10, h=6, txt='Total\nTime', border=1)
-    isl_pdf.x = isl_pdf.x + 216
+    isl_pdf.x = isl_pdf.x + 233
     isl_pdf.y = isl_pdf.y - 12
     vert_col_y = isl_pdf.y + 12
     isl_pdf.multi_cell(w=10, h=6, txt='FTF\nTime', border=1)
-    isl_pdf.x = isl_pdf.x + 226
+    isl_pdf.x = isl_pdf.x + 243
     isl_pdf.y = isl_pdf.y - 12
     isl_pdf.multi_cell(w=15, h=6, txt='County\nLoc', border=1)
-    isl_pdf.x = isl_pdf.x + 241
+    isl_pdf.x = isl_pdf.x + 258
     isl_pdf.y = isl_pdf.y - 12
     isl_pdf.multi_cell(w=16, h=6, txt='Medicare\nLoc', border=1)
-    isl_pdf.x = isl_pdf.x + 257
+    isl_pdf.x = isl_pdf.x + 274
     isl_pdf.y = isl_pdf.y - 12
     isl_pdf.multi_cell(w=10, h=6, txt='DX\nCode', border=1)
 
@@ -89,26 +89,15 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
             else:
                 isl_pdf.cell(w=30, h=12, txt='', border=1)
             isl_pdf.cell(w=30, h=12, txt=str(int(row['insyst'])), border=1)
-            name = row['Full Name'].split(',')
-            isl_pdf.multi_cell(w=30, h=6, txt=name[0] + ',\n' + name[1], border=1)
-            isl_pdf.x = isl_pdf.x + 120
-            isl_pdf.y = isl_pdf.y - 12
-            if len(row['event_name']) > 15:
-                isl_pdf.multi_cell(w=30, h=6,
-                                   txt=row['event_name'][:len(row['event_name']) // 2] + '-\n' +
-                                       row['event_name'][len(row['event_name']) // 2:len(row['event_name'])],
-                                   border=1)
-                isl_pdf.x = isl_pdf.x + 150
-                isl_pdf.y = isl_pdf.y - 12
-            else:
-                isl_pdf.cell(w=30, h=12, txt=row['event_name'], border=1)
+            isl_pdf.cell(w=40, h=12, txt=row['Full Name'], border=1)
+            isl_pdf.cell(w=40, h=12, txt=row['event_name'], border=1)
             isl_pdf.cell(w=20, h=12, txt=row['service_date'].strftime('%m/%d/%y'), border=1)
             if not pd.isna(row['insyst_proc_code']):
-                isl_pdf.cell(w=15, h=12, txt=str(row['insyst_proc_code']), border=1)
+                isl_pdf.cell(w=12, h=12, txt=str(int(row['insyst_proc_code'])), border=1)
             else:
                 isl_pdf.cell(w=15, h=12, txt='', border=1)
             if not pd.isna(row['cpt_code']):
-                isl_pdf.cell(w=10, h=12, txt=str(int(row['cpt_code'])), border=1)
+                isl_pdf.cell(w=10, h=12, txt=str(row['cpt_code']), border=1)
             else:
                 isl_pdf.cell(w=10, h=12, txt='', border=1)
             if not pd.isna(row['complexities']):
@@ -116,7 +105,7 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
             else:
                 isl_pdf.cell(w=11, h=12, txt='', border=1)
             if pd.isna(row['total_duration']):
-                isl_pdf.cell(w=10, h=12, txt='N/A', border=1)
+                isl_pdf.cell(w=10, h=12, txt='', border=1)
             else:
                 isl_pdf.cell(w=10, h=12,
                              txt='{:02d}:{:02d}'.format(*divmod(int(row['total_duration']), 60)),
@@ -128,11 +117,14 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
                              txt='{:02d}:{:02d}'.format(*divmod(int(row['duration_worker']), 60)),
                              border=1)
             if pd.isna(row['sc_code']):
-                isl_pdf.cell(w=15, h=12, txt='N/A', border=1)
+                isl_pdf.cell(w=15, h=12, txt='', border=1)
             else:
                 isl_pdf.cell(w=15, h=12, txt=str(int(row['sc_code'])), border=1)
             isl_pdf.cell(w=16, h=12, txt='', border=1)
-            isl_pdf.cell(w=10, h=12, txt='', border=1, ln=1)
+            if not pd.isna(row['icd10_code']):
+                isl_pdf.cell(w=10, h=12, txt=str(row['icd10_code']), border=1, ln=1)
+            else:
+                isl_pdf.cell(w=10, h=12, txt='', border=1, ln=1)
             has_row = True
     if not has_row:
         vert_col_y = vert_col_y + 12
@@ -175,24 +167,24 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
     maa_time = frame['duration'].sum()
     isl_pdf.cell(w=30, h=7, txt='{:02d}:{:02d}'.format(*divmod(int(maa_time), 60)), border=1)
 
-    isl_pdf.x = 196
+    isl_pdf.x = 213
     isl_pdf.y = vert_col_y
     isl_pdf.cell(w=20, h=10, txt='SUB-TOTAL: ', ln=2, align='R')
-    isl_pdf.x = 111
+    isl_pdf.x = 128
     isl_pdf.multi_cell(w=100, h=5,
                        txt='Enter other staff time already entered in PSP from\n'
                            'Group Attendance Roster or Day Svc Log: ',
                        align='R')
-    isl_pdf.x = 111
+    isl_pdf.x = 128
     isl_pdf.multi_cell(w=100, h=5,
                        txt='Enter your Co-Staff time already entered in PSP\n'
                            'from Primary Staff Log: ',
                        align='R')
-    isl_pdf.x = 186
+    isl_pdf.x = 203
     isl_pdf.cell(w=30, h=10, txt='Enter MAA Time: ', ln=2, align='R')
     isl_pdf.cell(w=30, h=10, txt='Total Paid Time: ', ln=2, align='R')
 
-    isl_pdf.x = 216.25
+    isl_pdf.x = 233
     isl_pdf.y = vert_col_y
     subtotal = frame['total_duration'].sum()
     isl_pdf.cell(w=9.75, h=10, txt='{:02d}:{:02d}'.format(*divmod(int(subtotal), 60)), border=1, ln=2)
@@ -458,9 +450,9 @@ def fremont_isl(from_date):
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
                  % from_date.strftime('%m-%d-%Y')
-    send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
-    send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
+    #send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
+    #send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
+    #send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
 
     for filename in os.listdir('src/csv'):
         os.remove('src/csv/%s' % filename)
@@ -474,7 +466,7 @@ def main():
           ' ------------------------------')
     # only run automation for workdays
     f = open('src/txt/most_recent_from_date.txt', 'r+')
-    from_date = date.today() - timedelta(days=5)
+    from_date = datetime(2021, 1, 7) # date.today() - timedelta(days=5)
     print('Beginning Fremont ISL RPA (%s)...' % from_date.strftime('%Y.%m.%d'))
     if from_date.weekday() < 6:
         today = date.today()
