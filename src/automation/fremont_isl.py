@@ -476,7 +476,7 @@ def main():
     f = open('src/txt/most_recent_from_date.txt', 'r+')
     from_date = date.today() - timedelta(days=5)
     print('Beginning Fremont ISL RPA (%s)...' % from_date.strftime('%Y.%m.%d'))
-    if from_date.weekday() < 5:
+    if from_date.weekday() < 6:
         today = date.today()
         # if second workday of month, run automation for the rest of the previous month
         if 1 < int(today.strftime('%d')) <= 5 and today.weekday() < 5:
@@ -486,7 +486,7 @@ def main():
             prev_month_last_day = date.today().replace(day=1) - timedelta(days=1)
             if from_date < prev_month_last_day:
                 for i in range(from_day, int(prev_month_last_day.strftime('%d'))+1):
-                    if from_date.weekday() < 5:
+                    if from_date.weekday() < 6:
                         fremont_isl(from_date)
                         f.truncate(0)
                         f.write(from_date.strftime('%Y-%m-%d').strip())
