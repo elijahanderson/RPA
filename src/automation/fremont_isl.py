@@ -462,7 +462,7 @@ def main():
           ' ------------------------------')
     # only run automation for workdays
     f = open('src/txt/most_recent_from_date.txt', 'r+')
-    from_date = datetime(2021, 1, 7) # date.today() - timedelta(days=5)
+    from_date = date.today() - timedelta(days=5)
     print('Beginning Fremont ISL RPA (%s)...' % from_date.strftime('%Y.%m.%d'))
     if from_date.weekday() < 6:
         today = date.today()
