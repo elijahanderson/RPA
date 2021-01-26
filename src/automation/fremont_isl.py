@@ -80,7 +80,7 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
     for idx, row in frame.iterrows():
         if not pd.isna(row['Full Name']):
             vert_col_y = vert_col_y + 12
-            if row['vendor_name'] == 'Medi-Cal':
+            if row['vendor_name'] == 'CTYMEDICAL':
                 isl_pdf.cell(w=30, h=12, txt=row['policy_num'], border=1)
             else:
                 isl_pdf.cell(w=30, h=12, txt='', border=1)
@@ -450,10 +450,6 @@ def fremont_isl(from_date):
     email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
                  "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
                  % from_date.strftime('%m-%d-%Y')
-    #send_gmail('iweber@fremont.gov', 'KHIT Report Notification', email_body)
-    #send_gmail('kkapis@fremont.gov', 'KHIT Report Notification', email_body)
-    #send_gmail('mlua@fremont.gov', 'KHIT Report Notification', email_body)
-
     for filename in os.listdir('src/csv'):
         os.remove('src/csv/%s' % filename)
     for filename in os.listdir('src/pdf'):
