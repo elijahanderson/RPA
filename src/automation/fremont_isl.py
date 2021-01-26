@@ -95,7 +95,7 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
             if not pd.isna(row['insyst_proc_code']):
                 isl_pdf.cell(w=12, h=12, txt=str(int(row['insyst_proc_code'])), border=1)
             else:
-                isl_pdf.cell(w=15, h=12, txt='', border=1)
+                isl_pdf.cell(w=12, h=12, txt='', border=1)
             if not pd.isna(row['cpt_code']):
                 isl_pdf.cell(w=10, h=12, txt=str(row['cpt_code']), border=1)
             else:
@@ -131,10 +131,10 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
         isl_pdf.cell(w=30, h=12, txt='', border=1)
         isl_pdf.cell(w=30, h=12, txt='', border=1)
         isl_pdf.cell(w=30, h=12, txt='', border=1)
-        isl_pdf.cell(w=30, h=12, txt='', border=1)
-        isl_pdf.cell(w=30, h=12, txt='', border=1)
+        isl_pdf.cell(w=40, h=12, txt='', border=1)
+        isl_pdf.cell(w=40, h=12, txt='', border=1)
         isl_pdf.cell(w=20, h=12, txt='', border=1)
-        isl_pdf.cell(w=15, h=12, txt='', border=1)
+        isl_pdf.cell(w=12, h=12, txt='', border=1)
         isl_pdf.cell(w=10, h=12, txt='', border=1)
         isl_pdf.cell(w=11, h=12, txt='', border=1)
         isl_pdf.cell(w=10, h=12, txt='', border=1)
