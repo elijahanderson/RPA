@@ -12,6 +12,7 @@ from time import sleep
 
 from infrastructure.drive_upload import upload_file
 from infrastructure.email import send_gmail
+from infrastructure.last_day_of_month import last_day_of_month
 
 
 def join_datatables():
