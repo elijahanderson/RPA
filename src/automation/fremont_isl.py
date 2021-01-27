@@ -466,7 +466,8 @@ def fremont_isl(from_date):
                  "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
                  % from_date.strftime('%m-%d-%Y')
     for filename in os.listdir('src/csv'):
-        os.remove('src/csv/%s' % filename)
+        if not filename.endswith('.xlsx'):
+            os.remove('src/csv/%s' % filename)
     for filename in os.listdir('src/pdf'):
         os.remove('src/pdf/%s' % filename)
     shutil.rmtree(folder_path)

@@ -1,5 +1,6 @@
 .idea/
 __pycache__/
 src/config/
+src/csv/*.csv
 venv/
 src/automation/debug.log
