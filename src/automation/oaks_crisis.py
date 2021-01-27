@@ -51,7 +51,7 @@ def r6_14(curr_date, crisis_src, xl_writer):
         for idx, row in df.iterrows():
             if 'Correctional' in row['answers_caption']:
                 crisis_src.loc[4, curr_date] = crisis_src.loc[4, curr_date] + 1
-            if 'Nursing' in row['answers_caption']:
+            elif 'Nursing' in row['answers_caption']:
                 crisis_src.loc[5, curr_date] = crisis_src.loc[5, curr_date] + 1
             elif 'ER' in row['answers_caption']:
                 crisis_src.loc[6, curr_date] = crisis_src.loc[6, curr_date] + 1
@@ -116,9 +116,27 @@ def r21(curr_date, crisis_src, xl_writer):
     if not df.empty:
         # set row 21 to the length of the df
         crisis_src.loc[19, curr_date] = len(df)
+        
+        df = pd.read_csv('src/csv/r6-14.csv')
+        if not df.empty:
+            # add client who had outreach to one of four specified locations
+            today = date.today().strftime('%Y-%m-%d')
+            df["dob"] = pd.to_datetime(df.dob)
+            df['dob'] = df['dob'].apply(lambda dob: (pd.to_datetime(today) - dob) / np.timedelta64(1, 'Y'))
+            df = df[df['dob'] >= 18]
+
+            for idx, row in df.iterrows():
+                if 'ER Cooper' in row['answers_caption']:
+                    crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
+                elif 'Kennedy' in row['answers_caption']:
+                    crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
+                elif 'ER Virtua our Lady of Lourdes' in row['answers_caption']:
+                    crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
+                elif 'ER Virtua Voorhees' in row['answers_caption']:
+                    crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
+
         # sum the row
         crisis_src.loc[19, 'SFY 2021 Total'] = crisis_src.iloc[19, 4:16].sum()
-
         crisis_src.to_excel(xl_writer, sheet_name='crisis_src', index=False)
         xl_writer.save()
 
