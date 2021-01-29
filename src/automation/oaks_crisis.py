@@ -48,6 +48,13 @@ def r6_14(curr_date, crisis_src, xl_writer):
         df['dob'] = df['dob'].apply(lambda dob: (pd.to_datetime(today) - dob) / np.timedelta64(1, 'Y'))
         df = df[df['dob'] >= 18]
 
+        crisis_src.loc[4, curr_date] = 0
+        crisis_src.loc[5, curr_date] = 0
+        crisis_src.loc[6, curr_date] = 0
+        crisis_src.loc[7, curr_date] = 0
+        crisis_src.loc[8, curr_date] = 0
+        crisis_src.loc[11, curr_date] = 0
+
         for idx, row in df.iterrows():
             if 'Correctional' in row['answers_caption']:
                 crisis_src.loc[4, curr_date] = crisis_src.loc[4, curr_date] + 1
@@ -95,6 +102,9 @@ def r17(curr_date, crisis_src, xl_writer):
 def r18_20(curr_date, crisis_src, xl_writer):
     df = pd.read_csv('src/csv/r18-20.csv')
     if not df.empty:
+        crisis_src.loc[16, curr_date] = 0
+        crisis_src.loc[17, curr_date] = 0
+        crisis_src.loc[18, curr_date] = 0
         for idx, row in df.iterrows():
             if row['Row'] == 'Row 18':
                 crisis_src.loc[16, curr_date] = crisis_src.loc[16, curr_date] + 1
@@ -151,6 +161,12 @@ def r22_26(curr_date, crisis_src, xl_writer):
         df = df[df['dob'].astype(int) >= 18]
         df = df[df['program_name'] == 'Crisis Screening Services']
 
+        crisis_src.loc[20, curr_date] = 0
+        crisis_src.loc[21, curr_date] = 0
+        crisis_src.loc[22, curr_date] = 0
+        crisis_src.loc[23, curr_date] = 0
+        crisis_src.loc[24, curr_date] = 0
+
         # sort the hospitals into their appropriate row
         for answer in df['answers_caption']:
             if 'STCF' in answer:
@@ -188,6 +204,9 @@ def r28_29(curr_date, crisis_src, xl_writer):
     df = pd.read_csv('src/csv/r28-29.csv')
     if not df.empty:
         df = df.rename(columns={'Time Between Entry and Adult Intake (Mins)': 'time_diff'})
+
+        crisis_src.loc[26, curr_date] = 0
+        crisis_src.loc[2, curr_date] = 0
 
         for idx, row in df.iterrows():
             if row['SecureStatus'] == 'Secured':
