@@ -17,9 +17,7 @@ from infrastructure.drive_upload import upload_folder
 from infrastructure.email import send_gmail
 
 
-def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_exists):
-    if staff_non_maa_already_exists and program_modifier == 4:
-        return
+def create_isl(frame, staff, program_modifier, from_date):
     isl_pdf = FPDF(orientation='L')
     isl_pdf.add_page()
     isl_pdf.set_font(family='Arial', size=11)
@@ -118,9 +116,10 @@ def create_isl(frame, staff, program_modifier, from_date, staff_non_maa_already_
                              border=1)
             if pd.isna(row['sc_code']):
                 isl_pdf.cell(w=15, h=12, txt='', border=1)
+                isl_pdf.cell(w=16, h=12, txt='', border=1)
             else:
                 isl_pdf.cell(w=15, h=12, txt=str(int(row['sc_code'])), border=1)
-            isl_pdf.cell(w=16, h=12, txt=str(get_medicare_loc(int(row['sc_code']))), border=1)
+                isl_pdf.cell(w=16, h=12, txt=str(get_medicare_loc(int(row['sc_code']))), border=1)
             if not pd.isna(row['icd10_code']):
                 isl_pdf.cell(w=10, h=12, txt=str(row['icd10_code']), border=1, ln=1)
             else:
@@ -231,14 +230,10 @@ def isl(from_date):
     merged['program_modifier'] = merged['program_modifier'].apply(lambda v: modifier_to_num(v))
     merged.to_csv('src/csv/merged.csv')
         
-    staff_with_pdf = []
     for key, frame in merged.groupby(['staff_name', 'program_modifier']):
-        if key[0] not in staff_with_pdf:
-            create_isl(frame, key[0], key[1], from_date, staff_non_maa_already_exists=False)
-            staff_with_pdf.append(key[0])
-        else:
-            create_isl(frame, key[0], key[1], from_date, staff_non_maa_already_exists=True)
-
+        print(frame)
+        create_isl(frame, key[0], key[1], from_date)
+    
     print('Done.')
 
 
@@ -263,20 +258,18 @@ def modifier_to_num(val):
     elif val == 'smmh_adult_21+':
         return 2
     elif val == 'maa':
-        return 4
+        return 1 
     else:
         return 3
 
 
 def num_to_modifier(val):
     if val == 1:
-        return 'smmh'
+        return 'smmh-maa'
     elif val == 2:
         return 'smmh_adult_21+'
     elif val == 3:
         return 'rr'
-    elif val == 4:
-        return 'maa_only'
     else:
         return ''
 
@@ -462,9 +455,7 @@ def fremont_isl(from_date):
     for filename in os.listdir('src/pdf'):
         shutil.move('src/pdf/%s' % filename, folder_path)
     upload_folder(folder_path, '1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd')
-    email_body = "Your daily ISL reports for (%s) are ready and available on the Fremont RPA " \
-                 "Reports shared drive: https://drive.google.com/drive/folders/1lYsW4yfourbnFYJB3GLh6br7D1_3LOcd" \
-                 % from_date.strftime('%m-%d-%Y')
+    
     for filename in os.listdir('src/csv'):
         if not filename.endswith('.xlsx'):
             os.remove('src/csv/%s' % filename)
@@ -478,7 +469,7 @@ def main():
           ' ------------------------------')
     # only run automation for workdays
     f = open('src/txt/most_recent_from_date.txt', 'r+')
-    from_date = date.today() - timedelta(days=5)
+    from_date = datetime(2021, 1, 28) # date.today() - timedelta(days=5)
     print('Beginning Fremont ISL RPA (%s)...' % from_date.strftime('%Y.%m.%d'))
     if from_date.weekday() < 6:
         today = date.today()
@@ -502,7 +493,7 @@ def main():
             f.truncate(0)
             f.write(from_date.strftime('%Y-%m-%d').strip())
     else:
-        print('%s is on a weekend.' % from_date.strftime('%Y.%m.%d'))
+        print('%s is on a Sunday.' % from_date.strftime('%Y.%m.%d'))
         f.truncate(0)
         f.write(from_date.strftime('%Y-%m-%d').strip())
     
@@ -511,9 +502,9 @@ def main():
 
 try:
     main()
-    send_gmail('eanderson@khitconsulting.com',
-               'KHIT Report Notification',
-               'Successfully finished Fremont ISL RPA!')
+    #send_gmail('eanderson@khitconsulting.com',
+    #           'KHIT Report Notification',
+    #           'Successfully finished Fremont ISL RPA!')
 except Exception as e:
     print('System encountered an error running Fremont ISL RPA:\n')
     print_exc()
