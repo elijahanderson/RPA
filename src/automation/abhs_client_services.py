@@ -170,10 +170,10 @@ def browser(from_date, to_date):
         .find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[4]/div[11]/div/div/iframe')
     driver.switch_to.frame(iframe_params)
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/table/tbody/tr/td[2]/div/input')\
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr/td[2]/div/input')\
         .send_keys('Supervisor' + Keys.TAB)
     sleep(1)
-    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/table/tbody/tr[1]/td[4]/div/input')\
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[4]/div/input')\
         .send_keys('Bruns, Amanda' + Keys.TAB)
     driver.implicitly_wait(5)
 
@@ -193,7 +193,7 @@ def browser(from_date, to_date):
     # download the CSV for Kelly's client info
     driver.switch_to.frame(iframe_params)
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/table/tbody/tr[1]/td[4]/div/input') \
+    driver.find_element_by_xpath('/html/body/div[2]/table/tbody/tr[1]/td[4]/div/input') \
         .send_keys('Moffett, Kelly' + Keys.TAB)
     sleep(1)
     driver.switch_to.default_content()
@@ -213,7 +213,7 @@ def browser(from_date, to_date):
 
 
 def main():
-    print('------------------------------ ' + date.today().strftime('%Y.%m.%d' '%H:%M') + ' ------------------------------')
+    print('------------------------------ ' + date.today().strftime('%Y.%m.%d %H:%M') + ' ------------------------------')
     print('Beginning ABHS Client Services RPA...')
     from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
     to_date = date.today().replace(day=1)
