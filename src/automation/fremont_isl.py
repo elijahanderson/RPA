@@ -26,8 +26,8 @@ def create_isl(frame, staff, program_modifier, from_date):
     isl_pdf.cell(w=0, h=10, txt='REPORTING UNIT:    01EI1 - City of Fremont MMH', align='L', ln=0)
     isl_pdf.cell(w=0, h=10, txt='STAFF NAME:    %s' % staff, align='R', ln=1)
     isl_pdf.cell(w=0, h=10, txt='DATE OF SERVICES:    %s' % from_date.strftime('%m/%d/%y'))
-    if not pd.isna(frame['id_number'].iloc[0]):
-        isl_pdf.cell(w=0, h=10, txt='STAFF NO:    %s' % str(int(frame['id_number'].iloc[0])), align='R', ln=1)
+    if not pd.isna(frame['cert_number'].iloc[0]):
+        isl_pdf.cell(w=0, h=10, txt='STAFF NO:    %s' % str(int(frame['cert_number'].iloc[0])), align='R', ln=1)
     else:
         isl_pdf.cell(w=0, h=10, txt='STAFF NO: _____', align='R', ln=1)
     isl_pdf.multi_cell(w=0, h=5, txt='CONFIDENTIAL INFORMATION\nCalifornia W & I Code Section 5328\n\n', align='C')
@@ -76,7 +76,7 @@ def create_isl(frame, staff, program_modifier, from_date):
 
     has_row = False
     for idx, row in frame.iterrows():
-        if not pd.isna(row['Full Name']):
+        if not pd.isna(row['full_name']):
             vert_col_y = vert_col_y + 12
             if row['vendor_name'] == 'CTYMEDICAL' or row['vendor_name'] == 'STATEMEDICAL':
                 isl_pdf.cell(w=30, h=12, txt=row['policy_num'], border=1)
@@ -86,40 +86,38 @@ def create_isl(frame, staff, program_modifier, from_date):
                 isl_pdf.cell(w=30, h=12, txt=row['policy_num'], border=1)
             else:
                 isl_pdf.cell(w=30, h=12, txt='', border=1)
-            isl_pdf.cell(w=30, h=12, txt=str(int(row['insyst'])), border=1)
-            isl_pdf.cell(w=40, h=12, txt=row['Full Name'], border=1)
+            isl_pdf.cell(w=30, h=12, txt=str(int(row['id_no'])), border=1)
+            isl_pdf.cell(w=40, h=12, txt=row['full_name'], border=1)
             isl_pdf.cell(w=40, h=12, txt=row['event_name'], border=1)
-            isl_pdf.cell(w=20, h=12, txt=row['service_date'].strftime('%m/%d/%y'), border=1)
-            if not pd.isna(row['insyst_proc_code']):
-                isl_pdf.cell(w=12, h=12, txt=str(int(row['insyst_proc_code'])), border=1)
+            isl_pdf.cell(w=20, h=12, txt=row['actual_date'].strftime('%m/%d/%y'), border=1)
+            if not pd.isna(row['std_code']):
+                isl_pdf.cell(w=12, h=12, txt=str(int(row['std_code'])), border=1)
             else:
                 isl_pdf.cell(w=12, h=12, txt='', border=1)
-            if not pd.isna(row['cpt_code']):
-                isl_pdf.cell(w=12, h=12, txt=str(row['cpt_code']), border=1)
+            if not pd.isna(row['sc_code']):
+                isl_pdf.cell(w=12, h=12, txt=str(row['sc_code']), border=1)
             else:
                 isl_pdf.cell(w=12, h=12, txt='', border=1)
-            if not pd.isna(row['complexities']):
-                isl_pdf.cell(w=11, h=12, txt=str(row['complexities']), border=1)
+            if not pd.isna(row['COF_Complexitites_2']):
+                isl_pdf.cell(w=11, h=12, txt=str(row['COF_Complexitites_2']), border=1)
             else:
                 isl_pdf.cell(w=11, h=12, txt='', border=1)
-            if pd.isna(row['total_duration']):
+            if pd.isna(row['COF_TOTAL_DURATION']):
                 isl_pdf.cell(w=10, h=12, txt='', border=1)
             else:
                 isl_pdf.cell(w=10, h=12,
-                             txt='{:02d}:{:02d}'.format(*divmod(int(row['total_duration']), 60)),
+                             txt='{:02d}:{:02d}'.format(*divmod(int(row['COF_TOTAL_DURATION']), 60)),
                              border=1)
             if pd.isna(row['duration_worker']):
                 isl_pdf.cell(w=10, h=12, txt='N/A', border=1)
             else:
-                isl_pdf.cell(w=10, h=12,
-                             txt='{:02d}:{:02d}'.format(*divmod(int(row['duration_worker']), 60)),
-                             border=1)
-            if pd.isna(row['sc_code']):
+                isl_pdf.cell(w=10, h=12, txt=row['duration_worker'], border=1)
+            if pd.isna(row['general_location']):
                 isl_pdf.cell(w=15, h=12, txt='', border=1)
                 isl_pdf.cell(w=16, h=12, txt='', border=1)
             else:
-                isl_pdf.cell(w=15, h=12, txt=str(int(row['sc_code'])), border=1)
-                isl_pdf.cell(w=16, h=12, txt=str(get_medicare_loc(int(row['sc_code']))), border=1)
+                isl_pdf.cell(w=15, h=12, txt=str(int(row['general_location'])), border=1)
+                isl_pdf.cell(w=16, h=12, txt=str(get_medicare_loc(int(row['general_location']))), border=1)
             if not pd.isna(row['icd10_code']):
                 isl_pdf.cell(w=10, h=12, txt=str(row['icd10_code']), border=1, ln=1)
             else:
@@ -147,7 +145,7 @@ def create_isl(frame, staff, program_modifier, from_date):
     isl_pdf.cell(w=30, h=7, txt='Time', border=1)
     isl_pdf.cell(w=40, h=7, txt='Recipient Code', border=1, ln=1)
     for idx, row in frame.iterrows():
-        if pd.isna(row['Full Name']):
+        if pd.isna(row['full_name']):
             if len(row['event_name']) > 15:
                 text = row['event_name'][:15] + '...'
                 isl_pdf.cell(w=30, h=7, txt=text, border=1)
@@ -185,7 +183,7 @@ def create_isl(frame, staff, program_modifier, from_date):
 
     isl_pdf.x = 235
     isl_pdf.y = vert_col_y
-    subtotal = frame['total_duration'].sum()
+    subtotal = frame['COF_TOTAL_DURATION'].sum()
     isl_pdf.cell(w=10, h=10, txt='{:02d}:{:02d}'.format(*divmod(int(subtotal), 60)), border=1, ln=2)
     isl_pdf.cell(w=10, h=10, txt='', border=1, ln=2)
     isl_pdf.cell(w=10, h=10, txt='', border=1, ln=2)
@@ -200,15 +198,22 @@ def create_isl(frame, staff, program_modifier, from_date):
     isl_pdf.cell(w=200, h=10, txt='_______________________________________________________________________________'
                                   '_________________________________________')
     isl_pdf.output('src/pdf/isl_%s_%s_%s_%s.pdf' %
-                   (staff.split(', ')[0].lower(), staff.split(', ')[1].lower(), from_date.strftime('%Y-%m-%d'), num_to_modifier(program_modifier)))
+                   (staff.split(', ')[0].lower(), staff.split(', ')[1].lower(), from_date.strftime('%Y-%m-%d'),
+                    num_to_modifier(program_modifier)))
     
 
 def isl(from_date):
     print('Beginning CSV modifications...', end=' ')
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+
     staff_only = pd.read_csv('src/csv/only_staff.csv')
+    staff_ids = pd.read_csv('src/csv/staff_ids.csv')
     clients_only = pd.read_csv('src/csv/clients_only.csv')
     recipient_codes = pd.read_csv('src/csv/recipient_codes.csv')
-    staff_ids = pd.read_csv('src/csv/staff_ids.csv')
+    other_codes = pd.read_csv('src/csv/other_codes.csv')
+    insyst_ids = pd.read_csv('src/csv/client_insyst_ids.csv')
+    insurance_info = pd.read_csv('src/csv/insurance_info.csv')
 
     staff_only = staff_only[['staff_name', 'event_name', 'actual_date', 'duration', 'event_log_id', 'staff_id']]
     staff_only['actual_date'] = pd.to_datetime(staff_only.actual_date)
@@ -218,23 +223,58 @@ def isl(from_date):
     staff_only = staff_only[staff_only['staff_name'].isin(needed_staff)]
     staff_only.drop_duplicates(subset=['event_log_id'], inplace=True)
 
-    clients_only['service_date'] = pd.to_datetime(clients_only.service_date)
-    clients_only['staff_name'] = clients_only['staff_name'].str.strip()
-    clients_only.drop_duplicates(subset=['event_log_id'], inplace=True)
+    clients_only = clients_only[['full_name', 'id_no', 'staff_name', 'actual_date', 'event_log_id', 'event_name',
+                                 'duration', 'general_location', 'program_modifier_code', 'event_category_id',
+                                 'staff_id']]
+    clients_only['actual_date'] = pd.to_datetime(clients_only.actual_date)
+    clients_only = clients_only.rename(columns={'duration': 'duration_worker'})
+    clients_only['program_modifier_code'] = clients_only['program_modifier_code'].str.strip()
+    clients_only = clients_only[clients_only['program_modifier_code'].isin(['RR', 'SMMH', 'SMHAD'])]
+    clients_only = clients_only[clients_only['event_category_id'] == '4b9aebb1-34d7-4a06-b22f-1491fb725d8c']
+    clients_only.reset_index(drop=True, inplace=True)
+    clients_only['general_location'] = clients_only['general_location'].apply(lambda v: get_loc_code(v))
 
-    staff_only = staff_only.merge(recipient_codes, on=['event_log_id']) 
+    insyst_ids = insyst_ids.rename(columns={'Client ID': 'id_no'})
+    insyst_ids['id_no'] = insyst_ids['id_no'].astype(int)
+    clients_only['id_no'] = clients_only['id_no'].astype(int)
+    clients_only = clients_only.merge(insyst_ids, on=['id_no'], how='left')
+    clients_only = clients_only.merge(other_codes, on=['event_log_id'], how='left')
 
-    merged = pd.concat([staff_only, clients_only], axis=0, ignore_index=True)
-    merged = merged.merge(staff_ids, on=['staff_id'])
-    merged['program_modifier'] = merged['program_modifier'].fillna('maa')
-    merged['program_modifier'] = merged['program_modifier'].apply(lambda v: modifier_to_num(v))
-    merged.to_csv('src/csv/merged.csv')
+    insurance_info.drop_duplicates(inplace=True)
+    insurance_info = insurance_info.rename(columns={'Client ID': 'id_no'})
+    insurance_info['id_no'] = insurance_info['id_no'].astype(int)
+    clients_only = clients_only.merge(insurance_info, on=['id_no'], how='left')
+
+    staff_only = staff_only.merge(recipient_codes, on=['event_log_id'])
+
+    merged = pd.concat([staff_only, clients_only], axis=0, sort=False, ignore_index=True)
+    merged = merged.merge(staff_ids, on=['staff_id'], how='left')
+    merged['program_modifier_code'] = merged['program_modifier_code'].fillna('maa')
+    merged['program_modifier_code'] = merged['program_modifier_code'].apply(lambda v: modifier_to_num(v))
+    print(merged)
         
-    for key, frame in merged.groupby(['staff_name', 'program_modifier']):
+    for key, frame in merged.groupby(['staff_name', 'program_modifier_code']):
         print(frame)
         create_isl(frame, key[0], key[1], from_date)
     
     print('Done.')
+
+
+def get_loc_code(val):
+    val = str(val).strip()
+    if val == 'Telehealth':
+        return 20
+    elif val == 'Phone':
+        return 3
+    elif val == 'Agency Office':
+        return 1
+    elif 'Homeless' in val:
+        return 10
+    elif val == 'Home':
+        return 4
+    elif not pd.isna(val):
+        return 18
+    return ''
 
 
 def get_medicare_loc(val):
@@ -252,22 +292,23 @@ def get_medicare_loc(val):
 
 
 def modifier_to_num(val):
-    val = val.replace(' ', '_').lower()
-    if val == 'senior_mobile_mental_health':
+    val = val.lower()
+    if val == 'smmh':
         return 1
-    elif val == 'smmh_adult_21+':
+    elif val == 'smhad':
         return 2
-    elif val == 'maa':
-        return 1 
-    else:
+    elif val == 'rr':
         return 3
+    elif val == 'maa':
+        return 1
+    return ''
 
 
 def num_to_modifier(val):
     if val == 1:
         return 'smmh-maa'
     elif val == 2:
-        return 'smmh_adult_21+'
+        return 'smhad'
     elif val == 3:
         return 'rr'
     else:
@@ -532,7 +573,7 @@ def fremont_isl(from_date):
     print('Running ISL report for ' + from_date.strftime('%Y.%m.%d'))
     to_date = from_date + timedelta(days=1)
 
-    browser(from_date, to_date)
+    # browser(from_date, to_date)
     isl(from_date)
     folder_path = 'src/%s' % from_date.strftime('%Y-%m-%d')
     os.mkdir(folder_path)
@@ -554,6 +595,7 @@ def main():
     # only run automation for workdays
     f = open('src/txt/most_recent_from_date.txt', 'r+')
     from_date = date.today() - timedelta(days=5)
+    fremont_isl(from_date)
     print('Beginning Fremont ISL RPA (%s)...' % from_date.strftime('%Y.%m.%d'))
     if from_date.weekday() < 6:
         today = date.today()
