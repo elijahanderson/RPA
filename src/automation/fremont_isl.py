@@ -326,7 +326,7 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[2]/div/input') \
         .send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[3]/div/input') \
-        .send_keys(to_date.strftime('%m/%d/%Y'))
+        .send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[3]/div[2]/div/span').click()
 
     # switch back to default content for report selection
@@ -349,8 +349,44 @@ def browser(from_date, to_date):
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/only_staff.csv')
 
-    # navigate to and generate custom ISL report (clients_only.csv)
+    # navigate to and generate canned client services report (clients_only.csv)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[19]/span').click()
+    driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[3]').click()
+    driver.find_element_by_xpath('//*[@id="d66dc6ec-03be-41b2-b808-206523c7e33d"]/li[2]').click()
+    cd_frame1 = driver.find_element_by_xpath('//*[@id="MainContent_ctl36"]/iframe')
+    driver.switch_to.frame(cd_frame1)
+    cd_frame2 = driver.find_element_by_xpath('//*[@id="formset-target-wrapper-id"]/div[2]/iframe[1]')
+    driver.switch_to.frame(cd_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[2]/div/input') \
+        .send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[2]/div[3]/div/input') \
+        .send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="rightContentFormId-ctrl-5"]/span').click()
+
+    # switch back to default content for report selection
+    sleep(1)
     driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('/html/body/div[2]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]') \
+        .click()
+
+    # download and rename the report
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cd_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cd_frame2)
+    driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="form-toolbar-16"]').click()
+    sleep(3)
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/clients_only.csv')
+
+    # navigate to custom reports > -RPA-
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
     driver.switch_to.default_content()
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[19]/span').click()
@@ -362,32 +398,29 @@ def browser(from_date, to_date):
     cr_frame2 = driver.find_element_by_xpath('/html/body/form/div[3]/div/div[2]/iframe')
     driver.switch_to.frame(cr_frame2)
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath(
-        '/html/body/form/table/tbody/tr/td/table/tbody/tr/td/div[2]/div[1]/div[2]/table/tbody/tr[2]/td[2]/a').click()
+    driver.find_element_by_xpath('//*[@id="grdMain_FolderLink_0"]').click()
     driver.implicitly_wait(5)
     sleep(3)
+
+    # 1 Individual Staff Events Recipient Codes
     driver.find_element_by_id('grdMain_ObjectName_0').click()
     driver.switch_to.default_content()
     driver.implicitly_wait(5)
     driver.switch_to.default_content()
     driver.implicitly_wait(5)
-    driver.switch_to.window(driver.window_handles[1])
+    driver.switch_to.window(driver.window_handles[-1])
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath(
-        '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[2]/span/input[1]') \
-        .send_keys(from_date.strftime('%m/%d/%Y'))
-    driver.find_element_by_xpath(
-        '/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[1]/td[3]/span/input[1]') \
-        .send_keys(to_date.strftime('%m/%d/%Y'))
-    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[2]/td/a[1]/input').click()
+    driver.find_element_by_xpath('//*[@id="RP1_3A"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_3B"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="Submit"]').click()
 
     # download and rename the report
-    driver.find_element_by_xpath('/html/body/form/span[5]/span/rdcondelement5/span/a/img').click()
+    driver.implicitly_wait(5)
+    driver.find_element_by_id('CSV').click()
     sleep(3)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
-    shutil.move(filename, 'src/csv/clients_only.csv')
+    shutil.move(filename, 'src/csv/recipient_codes.csv')
 
-    # navigate to and generate recipient code report (recipient_codes.csv)
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     driver.implicitly_wait(5)
@@ -396,6 +429,8 @@ def browser(from_date, to_date):
     driver.switch_to.frame(cr_frame2)
     driver.implicitly_wait(5)
     sleep(3)
+
+    # 2 Staff IDs
     driver.find_element_by_id('grdMain_ObjectName_1').click()
     driver.switch_to.default_content()
     driver.implicitly_wait(5)
@@ -403,20 +438,13 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.switch_to.window(driver.window_handles[-1])
     driver.implicitly_wait(10)
-    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[2]/td[2]/'
-                                 'span/input[1]').send_keys(from_date.strftime('%m/%d/%Y'))
-    driver.find_element_by_xpath('/html/body/form/div[2]/span/div/table/tbody/tr[1]/td/span/table/tbody/tr[2]/td[3]/'
-                                 'span/input[1]').send_keys(to_date.strftime('%m/%d/%Y'))
-    driver.find_element_by_id('Submit').click()
-    driver.implicitly_wait(5)
 
     # download and rename the report
-    driver.find_element_by_xpath('/html/body/form/span[5]/span/rdcondelement4/span/a/img').click()
+    driver.find_element_by_id('CSV').click()
     sleep(3)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
-    shutil.move(filename, 'src/csv/recipient_codes.csv')
+    shutil.move(filename, 'src/csv/staff_ids.csv')
 
-    # navigate to and generate staff IDs report (staff_ids.csv)
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     driver.implicitly_wait(5)
@@ -425,6 +453,8 @@ def browser(from_date, to_date):
     driver.switch_to.frame(cr_frame2)
     driver.implicitly_wait(5)
     sleep(3)
+
+    # 3 CPT/Proc/ICD-10 Codes & Complexities
     driver.find_element_by_id('grdMain_ObjectName_2').click()
     driver.switch_to.default_content()
     driver.implicitly_wait(5)
@@ -432,11 +462,65 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.switch_to.window(driver.window_handles[-1])
     driver.implicitly_wait(5)
+    driver.find_element_by_xpath('//*[@id="RP1_1A"]').send_keys(from_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="RP1_1B"]').send_keys(to_date.strftime('%m/%d/%Y'))
+    driver.find_element_by_xpath('//*[@id="Submit"]').click()
+
+    # download and rename the report
+    driver.implicitly_wait(5)
     driver.find_element_by_id('CSV').click()
     driver.implicitly_wait(5)
     sleep(3)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
-    shutil.move(filename, 'src/csv/staff_ids.csv')
+    shutil.move(filename, 'src/csv/other_codes.csv')
+
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+    sleep(3)
+
+    # 4 Client INSYST IDs
+    driver.find_element_by_id('grdMain_ObjectName_3').click()
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(10)
+
+    # download and rename the report
+    driver.find_element_by_id('CSV').click()
+    sleep(3)
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/client_insyst_ids.csv')
+
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame1)
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(cr_frame2)
+    driver.implicitly_wait(5)
+    sleep(3)
+
+    # 5 Client insurance info
+    driver.find_element_by_id('grdMain_ObjectName_4').click()
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.implicitly_wait(10)
+
+    # download and rename the report
+    driver.find_element_by_id('CSV').click()
+    sleep(3)
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/insurance_info.csv')
 
     print('Exiting chromedriver...', end=' ')
     driver.close()
