@@ -17,7 +17,7 @@ from infrastructure.drive_upload import upload_folder
 from infrastructure.email import send_gmail
 
 
-def create_isl(frame, staff, program_modifier, from_date):
+def create_isl(frame, staff, program_modifier, from_date, insurance_info):
     isl_pdf = FPDF(orientation='L')
     isl_pdf.add_page()
     isl_pdf.set_font(family='Arial', size=11)
@@ -79,23 +79,15 @@ def create_isl(frame, staff, program_modifier, from_date):
         if not pd.isna(row['full_name']):
             vert_col_y = vert_col_y + 12
             
-            insurance_info = pd.read_csv('src/csv/insurance_info.csv')
-            insurance_info.drop_duplicates(inplace=True)
-            insurance_info = insurance_info.rename(columns={'Client ID': 'id_no'})
-            insurance_info['id_no'] = insurance_info['id_no'].astype(int)
-            print(row.to_frame())
-            row_insurance = insurance_info.merge(row.to_frame(), on=['id_no'], how='left')
-            row_insurance['vendor_name'] = row_insurance['vendor_name'].apply(lambda v: insurance_nums(v))
-            # TODO -- fix clients w/ multiple insurances appearing as 2 separate events
-            for key, frame in row_insurance.groupby(['vendor_name']):
-                if key == 1:
-                    isl_pdf.cell(w=30, h=12, txt=frame['policy_num'], border=1)
-                else:                        
-                    isl_pdf.cell(w=30, h=12, txt='', border=1)
-                if key == 2:
-                    isl_pdf.cell(w=30, h=12, txt=frame['policy_num'], border=1)
-                else:
-                    isl_pdf.cell(w=30, h=12, txt='', border=1)
+            row_insurance = insurance_lookup(insurance_info, row)
+            if 'Medical' in row_insurance:
+                isl_pdf.cell(w=30, h=12, txt=row_insurance['Medical'], border=1)
+            else:                        
+                isl_pdf.cell(w=30, h=12, txt='', border=1)
+            if 'Medicare' in row_insurance:
+                isl_pdf.cell(w=30, h=12, txt=row_insurance['Medicare'], border=1)
+            else:
+                isl_pdf.cell(w=30, h=12, txt='', border=1)
             isl_pdf.cell(w=30, h=12, txt=str(int(row['id_no'])), border=1)
             isl_pdf.cell(w=40, h=12, txt=row['full_name'], border=1)
             isl_pdf.cell(w=40, h=12, txt=row['event_name'], border=1)
@@ -260,20 +252,28 @@ def isl(from_date):
     merged = merged.merge(staff_ids, on=['staff_id'], how='left')
     merged['program_modifier_code'] = merged['program_modifier_code'].fillna('maa')
     merged['program_modifier_code'] = merged['program_modifier_code'].apply(lambda v: modifier_to_num(v))
-    print(merged)
+    
+    insurance_info = pd.read_csv('src/csv/insurance_info.csv')
+    insurance_info.drop_duplicates(inplace=True)
+    insurance_info = insurance_info.rename(columns={'Client ID': 'id_no'})
+    insurance_info['id_no'] = insurance_info['id_no'].astype(int)
+    insurance_info['vendor_name'] = insurance_info['vendor_name'].apply(lambda v: 'Medical' if v == 'CTYMEDICAL' or v == 'STATEMEDICAL' else v)
         
     for key, frame in merged.groupby(['staff_name', 'program_modifier_code']):
         print(frame)
-        create_isl(frame, key[0], key[1], from_date)
+        create_isl(frame, key[0], key[1], from_date, insurance_info)
     
     print('Done.')
 
 
-def insurance_nums(val):
-    if val == 'STATEMEDICAL' or val == 'CTYMEDICAL':
-        return 1
-    elif val == 'Medicare':
-        return 2
+def insurance_lookup(insurance_info, row):
+    """ Return a dict containing client's vendor names and policy nums. """
+    insurance_dict = {}
+    insurance_info = insurance_info[insurance_info['id_no'] == row['id_no']]
+    for vendor, frame in insurance_info.groupby(['vendor_name']):
+        insurance_dict[vendor] = frame['policy_num'].iloc[0]
+    
+    return insurance_dict
 
 
 def get_loc_code(val):
@@ -614,11 +614,11 @@ def main():
           ' ------------------------------')
     # only run automation for workdays
     f = open('src/txt/most_recent_from_date.txt', 'r+')
-    from_date = datetime(2021, 1, 4) # date.today() - timedelta(days=5)
+    from_date = datetime(2021, 2, 2) - timedelta(days=5) # date.today() - timedelta(days=5)
 
     print('Beginning Fremont ISL RPA (%s)...' % from_date.strftime('%Y.%m.%d'))
     if from_date.weekday() < 6:
-        today = datetime(2021, 1, 31) # date.today()
+        today = datetime(2021, 2, 2) # date.today()
         # if second workday of month, run automation for the rest of the previous month
         if 1 < int(today.strftime('%d')) <= 5 and today.weekday() < 5:
             print('Second workday of the month -- running remaining reports for previous month')
