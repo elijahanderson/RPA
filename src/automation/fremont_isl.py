@@ -78,14 +78,24 @@ def create_isl(frame, staff, program_modifier, from_date):
     for idx, row in frame.iterrows():
         if not pd.isna(row['full_name']):
             vert_col_y = vert_col_y + 12
-            if row['vendor_name'] == 'CTYMEDICAL' or row['vendor_name'] == 'STATEMEDICAL':
-                isl_pdf.cell(w=30, h=12, txt=row['policy_num'], border=1)
-            else:
-                isl_pdf.cell(w=30, h=12, txt='', border=1)
-            if row['vendor_name'] == 'Medicare':
-                isl_pdf.cell(w=30, h=12, txt=row['policy_num'], border=1)
-            else:
-                isl_pdf.cell(w=30, h=12, txt='', border=1)
+            
+            insurance_info = pd.read_csv('src/csv/insurance_info.csv')
+            insurance_info.drop_duplicates(inplace=True)
+            insurance_info = insurance_info.rename(columns={'Client ID': 'id_no'})
+            insurance_info['id_no'] = insurance_info['id_no'].astype(int)
+            print(row.to_frame())
+            row_insurance = insurance_info.merge(row.to_frame(), on=['id_no'], how='left')
+            row_insurance['vendor_name'] = row_insurance['vendor_name'].apply(lambda v: insurance_nums(v))
+            # TODO -- fix clients w/ multiple insurances appearing as 2 separate events
+            for key, frame in row_insurance.groupby(['vendor_name']):
+                if key == 1:
+                    isl_pdf.cell(w=30, h=12, txt=frame['policy_num'], border=1)
+                else:                        
+                    isl_pdf.cell(w=30, h=12, txt='', border=1)
+                if key == 2:
+                    isl_pdf.cell(w=30, h=12, txt=frame['policy_num'], border=1)
+                else:
+                    isl_pdf.cell(w=30, h=12, txt='', border=1)
             isl_pdf.cell(w=30, h=12, txt=str(int(row['id_no'])), border=1)
             isl_pdf.cell(w=40, h=12, txt=row['full_name'], border=1)
             isl_pdf.cell(w=40, h=12, txt=row['event_name'], border=1)
@@ -193,13 +203,18 @@ def create_isl(frame, staff, program_modifier, from_date):
     isl_pdf.cell(w=0, h=15, txt='I hereby certify, under penalty of perjury, that the information contained in this'
                                 ' document is accurate and free from fraudulent claiming.', ln=1)
 
-    isl_pdf.cell(w=150, h=10, txt='Signature:')
-    isl_pdf.cell(w=20, h=10, txt='Date:', ln=1)
-    isl_pdf.cell(w=200, h=10, txt='_______________________________________________________________________________'
-                                  '_________________________________________')
+    isl_pdf.cell(w=150, h=10, txt='Signature')
+    isl_pdf.cell(w=20, h=10, txt='Date', ln=1)
+    if isl_pdf.y < 175:
+        isl_pdf.cell(w=200, h=10, txt='_______________________________________________________________________________'
+                                      '_________________________________________')
+    else:
+        isl_pdf.y = 175
+        isl_pdf.cell(w=200, h=10, txt='_______________________________________________________________________________'
+                                      '_________________________________________')
     isl_pdf.output('src/pdf/isl_%s_%s_%s_%s.pdf' %
-                   (staff.split(', ')[0].lower(), staff.split(', ')[1].lower(), from_date.strftime('%Y-%m-%d'),
-                    num_to_modifier(program_modifier)))
+                  (staff.split(', ')[0].lower(), staff.split(', ')[1].lower(), from_date.strftime('%Y-%m-%d'),
+                   num_to_modifier(program_modifier)))
     
 
 def isl(from_date):
@@ -213,8 +228,7 @@ def isl(from_date):
     recipient_codes = pd.read_csv('src/csv/recipient_codes.csv')
     other_codes = pd.read_csv('src/csv/other_codes.csv')
     insyst_ids = pd.read_csv('src/csv/client_insyst_ids.csv')
-    insurance_info = pd.read_csv('src/csv/insurance_info.csv')
-
+    
     staff_only = staff_only[['staff_name', 'event_name', 'actual_date', 'duration', 'event_log_id', 'staff_id']]
     staff_only['actual_date'] = pd.to_datetime(staff_only.actual_date)
     staff_only['staff_name'] = staff_only['staff_name'].str.strip()
@@ -240,11 +254,6 @@ def isl(from_date):
     clients_only = clients_only.merge(insyst_ids, on=['id_no'], how='left')
     clients_only = clients_only.merge(other_codes, on=['event_log_id'], how='left')
 
-    insurance_info.drop_duplicates(inplace=True)
-    insurance_info = insurance_info.rename(columns={'Client ID': 'id_no'})
-    insurance_info['id_no'] = insurance_info['id_no'].astype(int)
-    clients_only = clients_only.merge(insurance_info, on=['id_no'], how='left')
-
     staff_only = staff_only.merge(recipient_codes, on=['event_log_id'])
 
     merged = pd.concat([staff_only, clients_only], axis=0, sort=False, ignore_index=True)
@@ -258,6 +267,13 @@ def isl(from_date):
         create_isl(frame, key[0], key[1], from_date)
     
     print('Done.')
+
+
+def insurance_nums(val):
+    if val == 'STATEMEDICAL' or val == 'CTYMEDICAL':
+        return 1
+    elif val == 'Medicare':
+        return 2
 
 
 def get_loc_code(val):
@@ -391,6 +407,10 @@ def browser(from_date, to_date):
     shutil.move(filename, 'src/csv/only_staff.csv')
 
     # navigate to and generate canned client services report (clients_only.csv)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
+    driver.switch_to.default_content()
+    driver.implicitly_wait(5)
     driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[19]/span').click()
     driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[3]').click()
     driver.find_element_by_xpath('//*[@id="d66dc6ec-03be-41b2-b808-206523c7e33d"]/li[2]').click()
@@ -449,7 +469,7 @@ def browser(from_date, to_date):
     driver.implicitly_wait(5)
     driver.switch_to.default_content()
     driver.implicitly_wait(5)
-    driver.switch_to.window(driver.window_handles[-1])
+    driver.switch_to.window(driver.window_handles[1])
     driver.implicitly_wait(5)
     driver.find_element_by_xpath('//*[@id="RP1_3A"]').send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('//*[@id="RP1_3B"]').send_keys(to_date.strftime('%m/%d/%Y'))
@@ -481,7 +501,7 @@ def browser(from_date, to_date):
     driver.implicitly_wait(10)
 
     # download and rename the report
-    driver.find_element_by_id('CSV').click()
+    driver.find_element_by_xpath('/html/body/form/span[5]/span/rdcondelement6/span/a/img').click()
     sleep(3)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/staff_ids.csv')
@@ -573,7 +593,7 @@ def fremont_isl(from_date):
     print('Running ISL report for ' + from_date.strftime('%Y.%m.%d'))
     to_date = from_date + timedelta(days=1)
 
-    # browser(from_date, to_date)
+    browser(from_date, to_date)
     isl(from_date)
     folder_path = 'src/%s' % from_date.strftime('%Y-%m-%d')
     os.mkdir(folder_path)
@@ -594,11 +614,11 @@ def main():
           ' ------------------------------')
     # only run automation for workdays
     f = open('src/txt/most_recent_from_date.txt', 'r+')
-    from_date = date.today() - timedelta(days=5)
-    fremont_isl(from_date)
+    from_date = datetime(2021, 1, 4) # date.today() - timedelta(days=5)
+
     print('Beginning Fremont ISL RPA (%s)...' % from_date.strftime('%Y.%m.%d'))
     if from_date.weekday() < 6:
-        today = date.today()
+        today = datetime(2021, 1, 31) # date.today()
         # if second workday of month, run automation for the rest of the previous month
         if 1 < int(today.strftime('%d')) <= 5 and today.weekday() < 5:
             print('Second workday of the month -- running remaining reports for previous month')
@@ -628,9 +648,9 @@ def main():
 
 try:
     main()
-    send_gmail('eanderson@khitconsulting.com',
-               'KHIT Report Notification',
-               'Successfully finished Fremont ISL RPA!')
+    # send_gmail('eanderson@khitconsulting.com',
+    #           'KHIT Report Notification',
+    #           'Successfully finished Fremont ISL RPA!')
 except Exception as e:
     print('System encountered an error running Fremont ISL RPA:\n')
     print_exc()
