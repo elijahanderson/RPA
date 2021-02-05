@@ -100,8 +100,8 @@ def create_isl(frame, staff, program_modifier, from_date, insurance_info):
                 isl_pdf.cell(w=12, h=12, txt=str(row['sc_code']), border=1)
             else:
                 isl_pdf.cell(w=12, h=12, txt='', border=1)
-            if not pd.isna(row['COF_Complexitites_2']):
-                isl_pdf.cell(w=11, h=12, txt=str(row['COF_Complexitites_2']), border=1)
+            if not pd.isna(row['COF_Complexities_2']):
+                isl_pdf.cell(w=11, h=12, txt=str(row['COF_Complexities_2']), border=1)
             else:
                 isl_pdf.cell(w=11, h=12, txt='', border=1)
             if pd.isna(row['COF_TOTAL_DURATION']):
@@ -614,11 +614,11 @@ def main():
           ' ------------------------------')
     # only run automation for workdays
     f = open('src/txt/most_recent_from_date.txt', 'r+')
-    from_date = datetime(2021, 2, 2) - timedelta(days=5) # date.today() - timedelta(days=5)
+    from_date = date.today() - timedelta(days=5)
 
     print('Beginning Fremont ISL RPA (%s)...' % from_date.strftime('%Y.%m.%d'))
     if from_date.weekday() < 6:
-        today = datetime(2021, 2, 2) # date.today()
+        today = date.today()
         # if second workday of month, run automation for the rest of the previous month
         if 1 < int(today.strftime('%d')) <= 5 and today.weekday() < 5:
             print('Second workday of the month -- running remaining reports for previous month')
@@ -648,9 +648,9 @@ def main():
 
 try:
     main()
-    # send_gmail('eanderson@khitconsulting.com',
-    #           'KHIT Report Notification',
-    #           'Successfully finished Fremont ISL RPA!')
+    send_gmail('eanderson@khitconsulting.com',
+               'KHIT Report Notification',
+               'Successfully finished Fremont ISL RPA!')
 except Exception as e:
     print('System encountered an error running Fremont ISL RPA:\n')
     print_exc()
