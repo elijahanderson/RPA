@@ -101,7 +101,7 @@ def create_isl(frame, staff, program_modifier, from_date, insurance_info):
             else:
                 isl_pdf.cell(w=12, h=12, txt='', border=1)
             if not pd.isna(row['COF_Complexities_2']):
-                isl_pdf.cell(w=11, h=12, txt=str(row['COF_Complexities_2']), border=1)
+                isl_pdf.cell(w=11, h=12, txt='1', border=1)
             else:
                 isl_pdf.cell(w=11, h=12, txt='', border=1)
             if pd.isna(row['COF_TOTAL_DURATION']):
