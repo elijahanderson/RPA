@@ -604,20 +604,23 @@ def main():
     from_date = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
     to_date = date.today().replace(day=1)
 
-    browser(from_date, to_date)
-    to_excel_sheet()
-    upload_file('src/csv/crisis_sfy_2021.xlsx', '14vjvXL3TIVD366xS08LIIxTBgnYsTns8')
-    email_body = "Your monthly crisis report for (%s) is ready and available on the Oaks RPA " \
-                 "Reports shared drive: https://drive.google.com/drive/folders/14vjvXL3TIVD366xS08LIIxTBgnYsTns8" \
-                 "\nSherri, can you review this spreadsheet to make sure all the numbers are accurate? Thanks!" \
-                 % from_date.strftime('%b-%Y')
-    send_gmail('Sherri.Dunn@oaksintcare.org', 'KHIT Report Notification', email_body)
-    send_gmail('Krystle.Jarzyk@oaksintcare.org', 'KHIT Report Notification', email_body)
+    if date.today().weekday() == 2:
+        browser(from_date, to_date)
+        to_excel_sheet()
+        upload_file('src/csv/crisis_sfy_2021.xlsx', '14vjvXL3TIVD366xS08LIIxTBgnYsTns8')
+        email_body = "Your monthly crisis report for (%s) is ready and available on the Oaks RPA " \
+                     "Reports shared drive: https://drive.google.com/drive/folders/14vjvXL3TIVD3 \
+                     66xS08LIIxTBgnYsTns8" \
+                     % from_date.strftime('%b-%Y')
+        send_gmail('Sherri.Dunn@oaksintcare.org', 'KHIT Report Notification', email_body)
+        send_gmail('Krystle.Jarzyk@oaksintcare.org', 'KHIT Report Notification', email_body)
 
-    for filename in os.listdir('src/csv'):
-        if not filename.endswith('.xlsx'):
-            os.remove('src/csv/%s' % filename)
-
+        for filename in os.listdir('src/csv'):
+            if not filename.endswith('.xlsx'):
+                os.remove('src/csv/%s' % filename)
+    else:
+        print('Today is not Tuesday -- cancelling automation.')
+    
     print('Successfully finished Oaks Crisis RPA!')
 
 
