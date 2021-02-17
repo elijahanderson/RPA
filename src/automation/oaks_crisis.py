@@ -26,7 +26,7 @@ def r2_5(curr_date, crisis_src, xl_writer):
         df['dob'] = df['dob'].apply(lambda dob: (pd.to_datetime(today) - dob) / np.timedelta64(1, 'Y'))
         adults = df[df['dob'] >= 18]
         minors = df[df['dob'] < 18]
-
+        
         crisis_src.loc[1, curr_date] = len(adults)
         crisis_src.loc[2, curr_date] = len(minors)
         crisis_src.loc[3, curr_date] = len(df)
@@ -206,13 +206,13 @@ def r28_29(curr_date, crisis_src, xl_writer):
         df = df.rename(columns={'Time Between Entry and Adult Intake (Mins)': 'time_diff'})
 
         crisis_src.loc[26, curr_date] = 0
-        crisis_src.loc[2, curr_date] = 0
+        crisis_src.loc[27, curr_date] = 0
 
         for idx, row in df.iterrows():
             if row['SecureStatus'] == 'Secured':
-                crisis_src.loc[26, curr_date] = crisis_src.loc[26, curr_date] + 1
-            elif row['SecureStatus'] == 'Unsecured':
                 crisis_src.loc[27, curr_date] = crisis_src.loc[27, curr_date] + 1
+            elif row['SecureStatus'] == 'Unsecured':
+                crisis_src.loc[26, curr_date] = crisis_src.loc[26, curr_date] + 1
 
         # sum each program
         for idx, row in crisis_src.loc[26:27, :].iterrows():
@@ -612,8 +612,8 @@ def main():
                      "Reports shared drive: https://drive.google.com/drive/folders/14vjvXL3TIVD3 \
                      66xS08LIIxTBgnYsTns8" \
                      % from_date.strftime('%b-%Y')
-        send_gmail('Sherri.Dunn@oaksintcare.org', 'KHIT Report Notification', email_body)
-        send_gmail('Krystle.Jarzyk@oaksintcare.org', 'KHIT Report Notification', email_body)
+        #send_gmail('Sherri.Dunn@oaksintcare.org', 'KHIT Report Notification', email_body)
+        #send_gmail('Krystle.Jarzyk@oaksintcare.org', 'KHIT Report Notification', email_body)
 
         for filename in os.listdir('src/csv'):
             if not filename.endswith('.xlsx'):
