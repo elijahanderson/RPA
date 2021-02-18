@@ -138,7 +138,13 @@ def r21(curr_date, crisis_src, xl_writer):
             for idx, row in df.iterrows():
                 if 'ER Cooper' in row['answers_caption']:
                     crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
+                elif 'ER Jefferson Cherry Hill' in row['answers_caption']:
+                    crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
+                elif 'ER Stratford Jefferson' in row['answers_caption']:
+                    crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
                 elif 'Kennedy' in row['answers_caption']:
+                    crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
+                elif 'ER Virtua Berlin' in row['answers_caption']:
                     crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
                 elif 'ER Virtua our Lady of Lourdes' in row['answers_caption']:
                     crisis_src.loc[19, curr_date] = crisis_src.loc[19, curr_date] + 1
@@ -289,7 +295,7 @@ def browser(from_date, to_date):
     with open('src/config/login.yml', 'r') as yml:
         login = yaml.safe_load(yml)
         usr = login['oaks']
-        pwd = login['pwd']
+        pwd = login['oaks-pwd']
 
     driver.find_element_by_id('MainContent_MainContent_chkDomain').click()
     driver.find_element_by_id('MainContent_MainContent_userName').send_keys(usr)
@@ -298,7 +304,7 @@ def browser(from_date, to_date):
     driver.find_element_by_id('MainContent_MainContent_btnLogin').click()
     
     # navigate to RPA folder in custom reports
-    driver.find_element_by_xpath('/html/body/form/div[3]/div[1]/div[1]/ul/li[19]/span').click()
+    driver.find_element_by_xpath('//*[@id="product-header-button-bar-id"]/li[19]/span').click()
     driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[2]').click()
     driver.find_element_by_xpath('//*[@id="eb7969e8-1e9c-4c86-8c11-f030bfe97b0f"]/li[2]').click()
     cr_frame1 = driver.find_element_by_xpath('//*[@id="MainContent_ctl36"]/iframe')
@@ -502,7 +508,7 @@ def browser(from_date, to_date):
     driver.find_element_by_xpath('//*[@id="D-749878CE-6477-4939-AA21-40C231E4F63F-input"]')\
         .send_keys(from_date.strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('//*[@id="D-B28DDAE7-269C-42FA-9C04-53A6EABF445C-input"]')\
-        .send_keys(to_date.strftime('%m/%d/%Y'))
+        .send_keys((to_date-timedelta(days=1)).strftime('%m/%d/%Y'))
     driver.find_element_by_xpath('//*[@id="rightContentFormId-ctrl-7"]/span').click()
     # switch back to default content for report selection
     sleep(1)
@@ -612,8 +618,8 @@ def main():
                      "Reports shared drive: https://drive.google.com/drive/folders/14vjvXL3TIVD3 \
                      66xS08LIIxTBgnYsTns8" \
                      % from_date.strftime('%b-%Y')
-        #send_gmail('Sherri.Dunn@oaksintcare.org', 'KHIT Report Notification', email_body)
-        #send_gmail('Krystle.Jarzyk@oaksintcare.org', 'KHIT Report Notification', email_body)
+        send_gmail('Sherri.Dunn@oaksintcare.org', 'KHIT Report Notification', email_body)
+        send_gmail('Krystle.Jarzyk@oaksintcare.org', 'KHIT Report Notification', email_body)
 
         for filename in os.listdir('src/csv'):
             if not filename.endswith('.xlsx'):
