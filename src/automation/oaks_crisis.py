@@ -624,6 +624,10 @@ def main():
         for filename in os.listdir('src/csv'):
             if not filename.endswith('.xlsx'):
                 os.remove('src/csv/%s' % filename)
+        
+        send_gmail('eanderson@khitconsulting.com',
+                   'KHIT Report Notification',
+                   'Successfully finished Oaks Crisis RPA!')
     else:
         print('Today is not Tuesday -- cancelling automation.')
     
@@ -632,9 +636,6 @@ def main():
 
 try:
     main()
-    send_gmail('eanderson@khitconsulting.com',
-               'KHIT Report Notification',
-               'Successfully finished Oaks Crisis RPA!')
 except Exception as e:
     print('System encountered an error running Oaks Crisis RPA:\n')
     print_exc()
