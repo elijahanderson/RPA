@@ -39,7 +39,7 @@ def join_datatables():
 
 def browser():
     from_date = last_day_of_month(date.today()) + timedelta(days=1)
-    to_date = last_day_of_month(from_date)) + timedelta(days=1)
+    to_date = last_day_of_month(from_date) + timedelta(days=1)
     to_date = last_day_of_month(to_date) + timedelta(days=1)
 
     print('Setting up driver...', end=' ')

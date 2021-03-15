@@ -220,6 +220,6 @@ if __name__ == '__main__':
                    'Successfully finished Appleseed ISP Due Dates RPA!')
     except Exception as e:
         print('System encountered an error running Appleseed ISP Due Dates RPA: %s' % e)
-        email_body = 'System encountered an error running Appleseed MHA Due Dates RPA: %s' % e
+        email_body = 'System encountered an error running Appleseed ISP Due Dates RPA: %s' % e
         send_gmail('eanderson@khitconsulting.com', 'KHIT Report Notification', email_body)
 
