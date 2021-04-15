@@ -305,7 +305,7 @@ def browser(from_date, to_date):
     
     # navigate to RPA folder in custom reports
     driver.find_element_by_xpath('//*[@id="product-header-button-bar-id"]/li[19]/span').click()
-    driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[2]').click()
+    driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[3]').click()
     driver.find_element_by_xpath('//*[@id="eb7969e8-1e9c-4c86-8c11-f030bfe97b0f"]/li[2]').click()
     cr_frame1 = driver.find_element_by_xpath('//*[@id="MainContent_ctl36"]/iframe')
     driver.switch_to.frame(cr_frame1)
@@ -364,7 +364,10 @@ def browser(from_date, to_date):
         sleep(1)
     sleep(15)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
+    print(filename)
     shutil.move(filename, 'src/csv/r21.csv')
+    print('------------------ r21 ------------------------')
+    [print(f) for f in os.listdir('src/csv')]
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -395,6 +398,8 @@ def browser(from_date, to_date):
     sleep(15)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r27.csv')
+    print('------------------ r27 ------------------------')
+    [print(f) for f in os.listdir('src/csv')]
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -429,6 +434,8 @@ def browser(from_date, to_date):
     sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r18-20.csv')
+    print('------------------ r18-20 ------------------------')
+    [print(f) for f in os.listdir('src/csv')]
     sleep(1)
     # go back to RPA folder
     driver.close()
@@ -460,6 +467,8 @@ def browser(from_date, to_date):
     sleep(15)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r28-29.csv')
+    print('------------------ r28-29 ------------------------')
+    [print(f) for f in os.listdir('src/csv')]
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -490,6 +499,8 @@ def browser(from_date, to_date):
     sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getmtime)
     shutil.move(filename, 'src/csv/r2-5.csv')
+    print('------------------ r2-5 ------------------------')
+    [print(f) for f in os.listdir('src/csv')]
     # go back to RPA folder
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
@@ -497,7 +508,7 @@ def browser(from_date, to_date):
 
     # navigate to and download assessment results (rows 6-14 and 22-26)
     driver.find_element_by_xpath('//*[@id="product-header-button-bar-id"]/li[19]/span').click()
-    driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[3]').click()
+    driver.find_element_by_xpath('//*[@id="product-header-mega-menu-level1-id"]/li[4]').click()
     driver.find_element_by_xpath('//*[@id="d66dc6ec-03be-41b2-b808-206523c7e33d"]/li[15]').click()
     assessment_frame1 = driver.find_element_by_xpath('//*[@id="MainContent_ctl36"]/iframe')
     driver.switch_to.frame(assessment_frame1)
@@ -564,7 +575,8 @@ def browser(from_date, to_date):
     sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/r6-14.csv')
-
+    print('------------------ r6-14 ------------------------')
+    [print(f) for f in os.listdir('src/csv')]
     # rows 22-26
     driver.switch_to.frame(param_frame)
     driver.implicitly_wait(5)
@@ -594,6 +606,8 @@ def browser(from_date, to_date):
     sleep(10)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/r22-26.csv')
+    print('------------------ r22-26 ------------------------')
+    [print(f) for f in os.listdir('src/csv')]
     print('Completed.')
 
     print('Exiting chromedriver...', end=' ')
@@ -615,8 +629,7 @@ def main():
         to_excel_sheet()
         upload_file('src/csv/crisis_sfy_2021.xlsx', '14vjvXL3TIVD366xS08LIIxTBgnYsTns8')
         email_body = "Your monthly crisis report for (%s) is ready and available on the Oaks RPA " \
-                     "Reports shared drive: https://drive.google.com/drive/folders/14vjvXL3TIVD3 \
-                     66xS08LIIxTBgnYsTns8" \
+                     "Reports shared drive: https://drive.google.com/drive/u/0/folders/14vjvXL3TIVD366xS08LIIxTBgnYsTns8" \
                      % from_date.strftime('%b-%Y')
         send_gmail('Sherri.Dunn@oaksintcare.org', 'KHIT Report Notification', email_body)
         send_gmail('Krystle.Jarzyk@oaksintcare.org', 'KHIT Report Notification', email_body)
