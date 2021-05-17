@@ -10,19 +10,16 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 
-from infrastructure.drive_upload import upload_file
+from infrastructure.drive_upload import upload_folder
 from infrastructure.email import send_gmail
 from infrastructure.last_day_of_month import last_day_of_month
 
 
-def join_datatables():
-    tp_csv = pd.read_csv('src/csv/treatment_due_dates.csv')
-    pw_csv = pd.read_csv('src/csv/primary_workers.csv')
+def join_dfs(df1, df2, filename):
+    df1['name'] = df1['name'].str.strip()
+    df2['name'] = df2['name'].str.strip()
 
-    tp_csv['name'] = tp_csv['name'].str.strip()
-    pw_csv['name'] = pw_csv['name'].str.strip()
-
-    merged = tp_csv.merge(pw_csv, on='name')
+    merged = df1.merge(df2, on='name')
     merged.drop(['people_id', 'id_no', 'ssn_number', 'ssi_number', 'urn_no', 'dob',
                  'phone_day', 'phone_evening', 'aka', 'intake_date', 'discharge_date',
                  'client_status', 'ipd', 'service_track_id', 'gender', 'medicaid_number',
@@ -36,18 +33,26 @@ def join_datatables():
     merged['expiration_date'] = pd.to_datetime(merged.expiration_date)
     merged.sort_values(by=['primary_worker', 'expiration_date'], inplace=True, ascending=[True, True])
 
-    filename = 'src/csv/' + str((date.today().replace(day=1) + timedelta(days=31)).month) + '-' + \
-               str((date.today().replace(day=1) + timedelta(days=62)).month) + '-' + \
-               str((date.today().replace(day=1) + timedelta(days=62)).year) + '_treatment_plan_due_dates.csv'
     merged.to_csv(filename, index=False)
     return filename
 
 
-def browser():
-    from_date = last_day_of_month(date.today()) + timedelta(days=1)
-    to_date = last_day_of_month(from_date) + timedelta(days=1)
-    to_date = last_day_of_month(to_date) + timedelta(days=1)
+def join_datatables(from_date, to_date):
+    tp_df = pd.read_csv('src/csv/treatment_due_dates.csv')
+    pri_df = pd.read_csv('src/csv/primary_workers.csv')
+    all_df = pd.read_csv('src/csv/all_workers.csv')
 
+    p_file = join_dfs(tp_df, pri_df, 'src/csv/primary_workers.csv')
+    p_file = join_dfs(tp_df, all_df, 'src/csv/all_workers.csv')
+
+    folder_path = 'src/csv/' + from_date.strftime('%b.%Y') + '-' + to_date.strftime('%b.%Y') + ' ISP Due Dates'
+    os.mkdir(folder_path)
+    shutil.move('src/csv/primary_workers.csv', folder_path)
+    shutil.move('src/csv/all_workers.csv', folder_path)
+    return folder_path
+
+
+def browser(from_date, to_date):
     print('Setting up driver...', end=' ')
     # run in headless mode, enable downloads
     options = webdriver.ChromeOptions()
@@ -108,14 +113,11 @@ def browser():
     driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div/div[3]/div/div/div[1]/table/tbody/tr[3]/td[1]') \
         .click()
 
-    # go back into iframe2 for checkbox
     driver.implicitly_wait(5)
     driver.switch_to.frame(iframe1)
     driver.implicitly_wait(5)
     driver.switch_to.frame(iframe2)
     driver.implicitly_wait(5)
-    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[4]/div[2]/span/input').click()
-
     # switch to parameters iframe
     iframe_params = driver \
         .find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[4]/div[4]/div/div/iframe')
@@ -137,6 +139,13 @@ def browser():
     driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/ul/li[17]/a').click()
 
     # rename the downloaded file
+    sleep(5)
+    filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
+    shutil.move(filename, 'src/csv/all_workers.csv')
+
+    # primary workers only download
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[5]/div/div/div/div[4]/div[2]/span/input').click()
+    driver.find_element_by_xpath('/html/body/form/div[3]/div[2]/ul/li[17]/a').click()
     sleep(5)
     filename = max(['src/csv' + '/' + f for f in os.listdir('src/csv')], key=os.path.getctime)
     shutil.move(filename, 'src/csv/primary_workers.csv')
@@ -197,17 +206,20 @@ def browser():
 def main():
     print('------------------------------ ' + date.today().strftime('%Y.%m.%d %H:%M') + ' ------------------------------')
     print('Beginning Appleseed ISP Due Dates RPA...')
-    browser()
-    merged_filename = join_datatables()
-    upload_file(merged_filename, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
-    email_body = "Your monthly ISP due dates report (%s) is ready and available on the Appleseed RPA " \
-                 "Reports shared drive: https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
-                 % merged_filename.split('/')[-1]
-    send_gmail('alester@appleseedcmhc.org', 'KHIT Report Notification', email_body)
+    from_date = last_day_of_month(date.today()) + timedelta(days=1)
+    to_date = last_day_of_month(from_date) + timedelta(days=1)
+    to_date = last_day_of_month(to_date) + timedelta(days=1)
+
+    browser(from_date, to_date)
+    folder_path = join_datatables(from_date, to_date)
+    upload_folder(folder_path, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
+    email_body = "Hi Amber, \nThe ISP Due Dates reports are ready and available in the shared folder as %s:" \
+            "https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
+                 % folder_path.split('/')[-1]
+    #send_gmail('alester@appleseedcmhc.org', 'KHIT Report Notification', email_body)
     
     os.remove('src/csv/treatment_due_dates.csv')
-    os.remove('src/csv/primary_workers.csv')
-    os.remove(merged_filename)
+    shutil.rmtree(folder_path)
 
     print('Successfully finished Appleseed ISP Due Dates RPA!')
 
