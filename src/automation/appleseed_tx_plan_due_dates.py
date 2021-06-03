@@ -213,8 +213,9 @@ def main():
     browser(from_date, to_date)
     folder_path = join_datatables(from_date, to_date)
     upload_folder(folder_path, '1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl')
-    email_body = "Hi Amber, \nThe ISP Due Dates reports are ready and available in the shared folder as %s:" \
+    email_body = "Hi Amber, \nThe ISP Due Dates reports are ready and available in the shared drive in the folder named %s:" \
             "https://drive.google.com/drive/folders/1lbGzRqPGekImmPBr3EXdtsayBQtSMmSl" \
+            "\nLet me know if I can do anything else for you!" \
                  % folder_path.split('/')[-1]
     #send_gmail('alester@appleseedcmhc.org', 'KHIT Report Notification', email_body)
     

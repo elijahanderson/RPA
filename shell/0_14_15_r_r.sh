@@ -6,3 +6,4 @@ python3 src/automation/appleseed_mha_due_dates.py
 deactivate
 killall -9 chromedriver
 killall -9 chromium-browser
+killall -9 chrome
